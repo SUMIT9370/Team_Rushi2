@@ -1,3 +1,4 @@
+'use client';
 import { useState } from 'react';
 import { ArrowLeft, AlertCircle, Phone, MapPin, Plus, Trash2, CheckCircle, X, Edit } from 'lucide-react';
 import { Button } from './ui/button';
@@ -7,14 +8,21 @@ import { Badge } from './ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Screen, EmergencyContact } from '../app/page';
 import { ImageWithFallback } from './ImageWithFallback';
+import { useUser, useCollection, useFirestore } from '@/firebase';
+import { collection, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 
 interface EmergencyScreenProps {
   onNavigate: (screen: Screen) => void;
-  contacts: EmergencyContact[];
-  setContacts: (contacts: EmergencyContact[]) => void;
 }
 
-export function EmergencyScreen({ onNavigate, contacts, setContacts }: EmergencyScreenProps) {
+export function EmergencyScreen({ onNavigate }: EmergencyScreenProps) {
+  const { user } = useUser();
+  const db = useFirestore();
+
+  const { data: contacts, loading } = useCollection<EmergencyContact>(
+    user ? `users/${user.uid}/emergencyContacts` : ''
+  );
+
   const [emergencyActivated, setEmergencyActivated] = useState(false);
   const [isAddingContact, setIsAddingContact] = useState(false);
   const [newContact, setNewContact] = useState({
@@ -29,31 +37,32 @@ export function EmergencyScreen({ onNavigate, contacts, setContacts }: Emergency
     // In real app, this would trigger actual emergency protocols
   };
 
-  const handleAddContact = () => {
-    if (newContact.name && newContact.phone) {
-      const contact: EmergencyContact = {
-        id: Date.now(),
-        name: newContact.name,
-        relation: newContact.relation || 'Contact',
-        phone: newContact.phone,
+  const handleAddContact = async () => {
+    if (user && db && newContact.name && newContact.phone) {
+      const contactsCollection = collection(db, `users/${user.uid}/emergencyContacts`);
+      await addDoc(contactsCollection, {
+        ...newContact,
         isPrimary: false,
-        avatar: newContact.avatar
-      };
-      setContacts([...contacts, contact]);
+      });
       setNewContact({ name: '', relation: '', phone: '', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400' });
       setIsAddingContact(false);
     }
   };
 
-  const handleDeleteContact = (id: number) => {
-    setContacts(contacts.filter(c => c.id !== id));
+  const handleDeleteContact = async (id: string) => {
+    if (user && db) {
+      const contactDoc = doc(db, `users/${user.uid}/emergencyContacts`, id);
+      await deleteDoc(contactDoc);
+    }
   };
 
-  const handleSetPrimary = (id: number) => {
-    setContacts(contacts.map(c => ({
-      ...c,
-      isPrimary: c.id === id
-    })));
+  const handleSetPrimary = async (id: string) => {
+    if (user && db && contacts) {
+      for (const contact of contacts) {
+        const contactDoc = doc(db, `users/${user.uid}/emergencyContacts`, contact.id);
+        await updateDoc(contactDoc, { isPrimary: contact.id === id });
+      }
+    }
   };
 
   return (
@@ -118,7 +127,7 @@ export function EmergencyScreen({ onNavigate, contacts, setContacts }: Emergency
                     <CheckCircle className="w-6 h-6 text-green-600" />
                     <div>
                       <p className="text-base">Contacts Notified</p>
-                      <p className="text-sm text-gray-500">{contacts.length} people alerted</p>
+                      <p className="text-sm text-gray-500">{contacts?.length || 0} people alerted</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 bg-white p-4 rounded-xl">
@@ -230,7 +239,8 @@ export function EmergencyScreen({ onNavigate, contacts, setContacts }: Emergency
             </div>
 
             <div className="space-y-3">
-              {contacts.map((contact) => (
+              {loading && <p>Loading contacts...</p>}
+              {contacts?.map((contact) => (
                 <Card key={contact.id} className="p-6 bg-white shadow-md hover:shadow-lg transition-shadow">
                   <div className="flex items-center gap-4">
                     <ImageWithFallback
