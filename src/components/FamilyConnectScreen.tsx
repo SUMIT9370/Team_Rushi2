@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import {
   ArrowLeft,
   Phone,
@@ -22,7 +22,6 @@ import { Screen } from '../app/page';
 import { ImageWithFallback } from './ImageWithFallback';
 import type { User } from '@/firebase/auth/use-user';
 import {
-  useUser,
   useCollection,
   useFirestore,
   useMemoFirebase,
@@ -34,7 +33,6 @@ import {
   doc,
   serverTimestamp,
 } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 
 interface FamilyMember {
@@ -80,42 +78,51 @@ export function FamilyConnectScreen({
       newMember.relation &&
       newMember.phone
     ) {
-      let avatarUrl = 'https://picsum.photos/seed/defaultavatar/200/200'; // Default placeholder
+      setIsUploading(true);
+      let avatarDataUrl = 'https://picsum.photos/seed/defaultavatar/200/200'; // Default placeholder
 
       if (avatarFile) {
-        setIsUploading(true);
-        const storage = getStorage();
-        const storageRef = ref(
-          storage,
-          `avatars/family/${user.uid}/${Date.now()}_${avatarFile.name}`
-        );
         try {
-          const snapshot = await uploadBytes(storageRef, avatarFile);
-          avatarUrl = await getDownloadURL(snapshot.ref);
+          avatarDataUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(avatarFile);
+          });
         } catch (error) {
-          console.error('Error uploading avatar:', error);
+          console.error("Error converting file to Base64:", error);
           toast({
-            variant: 'destructive',
-            title: 'Upload Failed',
-            description: 'Could not upload the avatar image.',
+            variant: "destructive",
+            title: "Processing Failed",
+            description: "Could not process the image file.",
           });
           setIsUploading(false);
           return;
-        } finally {
-          setIsUploading(false);
         }
       }
 
-      await addDoc(familyMembersQuery, {
-        ...newMember,
-        avatar: avatarUrl,
-        createdAt: serverTimestamp(),
-      });
-      setNewMember({ name: '', relation: '', phone: '' });
-      setAvatarFile(null);
-      setIsAdding(false);
+      try {
+        await addDoc(familyMembersQuery, {
+          ...newMember,
+          avatar: avatarDataUrl,
+          createdAt: serverTimestamp(),
+        });
+        setNewMember({ name: '', relation: '', phone: '' });
+        setAvatarFile(null);
+        setIsAdding(false);
+      } catch (error) {
+        console.error("Error adding member:", error);
+        toast({
+          variant: "destructive",
+          title: "Save Failed",
+          description: "Could not save the new family member.",
+        });
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
+
 
   const handleDeleteMember = async (id: string) => {
     if (db && user) {
@@ -222,7 +229,7 @@ export function FamilyConnectScreen({
                         }
                         className="flex-1 h-12 bg-green-600 hover:bg-green-700"
                       >
-                        {isUploading ? 'Uploading...' : 'Add Member'}
+                        {isUploading ? 'Saving...' : 'Add Member'}
                       </Button>
                       <Button
                         onClick={() => setIsAdding(false)}
@@ -308,3 +315,5 @@ export function FamilyConnectScreen({
     </div>
   );
 }
+
+    

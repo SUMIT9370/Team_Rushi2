@@ -18,6 +18,10 @@
           "description": "The user's email address.",
           "format": "email"
         },
+        "photoURL": {
+            "type": "string",
+            "description": "The user's profile picture."
+        },
         "createdAt": {
           "type": "string",
           "description": "Timestamp of when the user was created.",
@@ -54,8 +58,7 @@
         },
         "avatar": {
           "type": "string",
-          "description": "URL for the contact's avatar image.",
-          "format": "uri"
+          "description": "Base64 data URL for the contact's avatar image."
         },
         "isPrimary": {
           "type": "boolean",
@@ -86,8 +89,7 @@
         },
         "avatar": {
           "type": "string",
-          "description": "URL for the family member's avatar image.",
-          "format": "uri"
+          "description": "Base64 data URL for the family member's avatar image."
         }
       },
       "required": [
@@ -191,3 +193,5 @@
     ]
   }
 }
+
+    

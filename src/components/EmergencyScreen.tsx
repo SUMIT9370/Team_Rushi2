@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from 'react';
 import {
@@ -39,7 +38,6 @@ import {
   updateDoc,
   serverTimestamp
 } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 import type { EmergencyContact } from '../app/page';
 
@@ -78,44 +76,53 @@ export function EmergencyScreen({ onNavigate }: EmergencyScreenProps) {
 
   const handleAddContact = async () => {
     if (user && db && newContact.name && newContact.phone) {
-       let avatarUrl = 'https://picsum.photos/seed/defaultavatar/200/200'; // Default placeholder
-      
+      setIsUploading(true);
+      let avatarDataUrl = 'https://picsum.photos/seed/defaultavatar/200/200'; // Default placeholder
+
       if (avatarFile) {
-        setIsUploading(true);
-        const storage = getStorage();
-        const storageRef = ref(storage, `avatars/emergency/${user.uid}/${Date.now()}_${avatarFile.name}`);
         try {
-          const snapshot = await uploadBytes(storageRef, avatarFile);
-          avatarUrl = await getDownloadURL(snapshot.ref);
+          avatarDataUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(avatarFile);
+          });
         } catch (error) {
-          console.error("Error uploading avatar:", error);
+          console.error("Error converting file to Base64:", error);
           toast({
             variant: "destructive",
-            title: "Upload Failed",
-            description: "Could not upload the avatar image.",
+            title: "Processing Failed",
+            description: "Could not process the image file.",
           });
           setIsUploading(false);
           return;
-        } finally {
-          setIsUploading(false);
         }
       }
 
-      const contactsCollection = collection(
-        db,
-        `users/${user.uid}/emergencyContacts`
-      );
-      await addDoc(contactsCollection, {
-        ...newContact,
-        avatar: avatarUrl,
-        isPrimary: false,
-        createdAt: serverTimestamp(),
-      });
-      setNewContact({ name: '', relation: '', phone: '' });
-      setAvatarFile(null);
-      setIsAddingContact(false);
+      try {
+        const contactsCollection = collection(db, `users/${user.uid}/emergencyContacts`);
+        await addDoc(contactsCollection, {
+          ...newContact,
+          avatar: avatarDataUrl,
+          isPrimary: false,
+          createdAt: serverTimestamp(),
+        });
+        setNewContact({ name: '', relation: '', phone: '' });
+        setAvatarFile(null);
+        setIsAddingContact(false);
+      } catch (error) {
+        console.error("Error adding contact:", error);
+        toast({
+          variant: "destructive",
+          title: "Save Failed",
+          description: "Could not save the new contact.",
+        });
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
+
 
   const handleDeleteContact = async (id: string) => {
     if (user && db) {
@@ -330,7 +337,7 @@ export function EmergencyScreen({ onNavigate }: EmergencyScreenProps) {
                         disabled={!newContact.name || !newContact.phone || isUploading}
                         className="flex-1 h-12 bg-green-600 hover:bg-green-700"
                       >
-                         {isUploading ? "Uploading..." : "Add Contact"}
+                         {isUploading ? "Saving..." : "Add Contact"}
                       </Button>
                       <Button
                         onClick={() => setIsAddingContact(false)}
@@ -450,3 +457,5 @@ export function EmergencyScreen({ onNavigate }: EmergencyScreenProps) {
     </div>
   );
 }
+
+    

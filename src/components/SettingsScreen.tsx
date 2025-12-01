@@ -30,7 +30,6 @@ import { useUser, type User, useFirestore } from '@/firebase';
 import { signOut } from '@/firebase/auth/signout';
 import { doc, updateDoc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 
 interface SettingsScreenProps {
@@ -70,7 +69,6 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
       const userDocRef = doc(firestore, 'users', user.uid);
       await updateDoc(userDocRef, {
         displayName: profileData.displayName,
-        updatedAt: new Date().toISOString(),
       });
       await updateProfile(user, { displayName: profileData.displayName });
       setIsEditingProfile(false);
@@ -88,32 +86,33 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
     if (!file || !user) return;
 
     setUploading(true);
-    const storage = getStorage();
-    const storageRef = ref(storage, `avatars/${user.uid}/${file.name}`);
 
     try {
-      const snapshot = await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(snapshot.ref);
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const dataUrl = reader.result as string;
 
-      // Update user profile in Auth and Firestore
-      if(user && firestore) {
-        await updateProfile(user, { photoURL: downloadURL });
-        const userDocRef = doc(firestore, 'users', user.uid);
-        await updateDoc(userDocRef, { photoURL: downloadURL });
-      }
+        // Update user profile in Auth and Firestore
+        if (user && firestore) {
+          await updateProfile(user, { photoURL: dataUrl });
+          const userDocRef = doc(firestore, 'users', user.uid);
+          await updateDoc(userDocRef, { photoURL: dataUrl });
+        }
 
-      toast({
-        title: 'Avatar Updated',
-        description: 'Your profile picture has been changed.',
-      });
+        toast({
+          title: 'Avatar Updated',
+          description: 'Your profile picture has been changed.',
+        });
+        setUploading(false);
+      };
+      reader.readAsDataURL(file);
     } catch (error) {
-      console.error('Error uploading file:', error);
+      console.error('Error processing file:', error);
       toast({
         variant: 'destructive',
         title: 'Upload Failed',
-        description: 'There was an error uploading your new avatar.',
+        description: 'There was an error processing your new avatar.',
       });
-    } finally {
       setUploading(false);
     }
   };
@@ -494,3 +493,5 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
     </div>
   );
 }
+
+    
