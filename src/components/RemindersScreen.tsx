@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { Pill, Calendar, Droplet, Plus, Check, Clock, Trash2, Bell } from 'lucide-react';
@@ -12,6 +13,7 @@ import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, deleteDoc, doc, updateDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow, parse } from 'date-fns';
+import { playNotificationSound } from '@/lib/sound';
 
 interface RemindersScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -78,6 +80,7 @@ export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
         const currentMinutes = new Date().getMinutes();
 
         if (hours === currentHours && minutes === currentMinutes && !reminder.completed && !reminder.notified) {
+          playNotificationSound();
           toast({
             title: `🔔 Reminder: ${reminder.title}`,
             description: reminder.description || `It's time for your reminder at ${reminder.time}.`,
