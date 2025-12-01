@@ -3,7 +3,8 @@ import { ArrowLeft, Mic, Send, Heart, Activity, Users, Calendar, Pill, AlertCirc
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Input } from './ui/input';
-import { Screen, User } from '../app/page';
+import { Screen } from '../app/page';
+import type { User } from '@/firebase/auth/use-user';
 
 interface ChatScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -28,7 +29,7 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: `Hello ${user.name}! I'm MITRAM, your caring companion. How can I help you today?`,
+      text: `Hello ${user.displayName}! I'm MITRAM, your caring companion. How can I help you today?`,
       sender: 'mitram',
       timestamp: new Date(),
       options: [
@@ -149,7 +150,7 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
     // Greeting
     if (input.includes('hi') || input.includes('hello') || input.includes('hey')) {
       return {
-        text: `Hello ${user.name}! 😊 I'm here to help you with anything you need. What would you like to do today?`,
+        text: `Hello ${user.displayName}! 😊 I'm here to help you with anything you need. What would you like to do today?`,
         options: [
           { icon: Pill, label: 'Medicine Reminders', action: 'medicine' },
           { icon: Activity, label: 'Health Check', action: 'health' },

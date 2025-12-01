@@ -1,49 +1,76 @@
-import { useState } from 'react';
-import { ArrowLeft, Volume2, Type, Moon, Globe, Users, Shield, Bell, LogOut, User as UserIcon, Edit } from 'lucide-react';
-import { Button } from './ui/button';
-import { Card } from './ui/card';
-import { Switch } from './ui/switch';
-import { Input } from './ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
-import { Screen, User } from '../app/page';
-import { ImageWithFallback } from './ImageWithFallback';
+
+"use client";
+import { useState } from "react";
+import {
+  ArrowLeft,
+  Volume2,
+  Type,
+  Moon,
+  Globe,
+  Users,
+  Shield,
+  Bell,
+  LogOut,
+  Edit,
+} from "lucide-react";
+import { Button } from "./ui/button";
+import { Card } from "./ui/card";
+import { Switch } from "./ui/switch";
+import { Input } from "./ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import { Screen } from "../app/page";
+import { ImageWithFallback } from "./ImageWithFallback";
+import { useUser, type User } from "@/firebase/auth/use-user";
+import { signOut } from "@/firebase/auth/signout";
+import { doc, updateDoc } from "firebase/firestore";
+import { useFirestore } from "@/firebase/firestore/use-firestore";
 
 interface SettingsScreenProps {
   onNavigate: (screen: Screen) => void;
   user: User;
-  setUser: (user: User | null) => void;
 }
 
-export function SettingsScreen({ onNavigate, user, setUser }: SettingsScreenProps) {
+export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
+  const firestore = useFirestore();
+  const { updateUser } = useUser();
   const [settings, setSettings] = useState({
     highContrast: false,
     medicineReminders: true,
     familyMessages: true,
-    voiceSpeed: 'normal',
-    textSize: 'large',
-    language: 'English'
+    voiceSpeed: "normal",
+    textSize: "large",
+    language: "English",
   });
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileData, setProfileData] = useState({
-    name: user.name,
-    age: user.age.toString()
+    displayName: user.displayName || "",
+    // age: user.age?.toString() ?? "",
   });
 
-  const handleLogout = () => {
-    if (confirm('Are you sure you want to logout?')) {
-      setUser(null);
-      onNavigate('login');
+  const handleLogout = async () => {
+    if (confirm("Are you sure you want to logout?")) {
+      await signOut();
+      onNavigate("login");
     }
   };
 
-  const handleUpdateProfile = () => {
-    if (profileData.name && profileData.age) {
-      setUser({
-        ...user,
-        name: profileData.name,
-        age: parseInt(profileData.age)
-      });
+  const handleUpdateProfile = async () => {
+    if (profileData.displayName) {
+      await updateUser({ displayName: profileData.displayName });
+      if (firestore && user.uid) {
+        const userDocRef = doc(firestore, "users", user.uid);
+        await updateDoc(userDocRef, {
+          displayName: profileData.displayName,
+          // age: parseInt(profileData.age),
+        });
+      }
       setIsEditingProfile(false);
     }
   };
@@ -55,7 +82,7 @@ export function SettingsScreen({ onNavigate, user, setUser }: SettingsScreenProp
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex items-center gap-4">
             <Button
-              onClick={() => onNavigate('home')}
+              onClick={() => onNavigate("home")}
               variant="ghost"
               className="text-white hover:bg-white/20 h-12 w-12 rounded-full p-0"
             >
@@ -76,14 +103,19 @@ export function SettingsScreen({ onNavigate, user, setUser }: SettingsScreenProp
           <Card className="p-6 bg-white shadow-md">
             <div className="flex items-center gap-6">
               <ImageWithFallback
-                src={user.profileImage}
-                alt={user.name}
+                src={user.photoURL || undefined}
+                alt={user.displayName || "user"}
                 className="w-24 h-24 rounded-full object-cover border-4 border-indigo-200"
               />
               <div className="flex-1">
-                <h3 className="text-2xl text-gray-900 mb-1">{user.name}</h3>
-                <p className="text-lg text-gray-600 mb-3">{user.age} years old</p>
-                <Dialog open={isEditingProfile} onOpenChange={setIsEditingProfile}>
+                <h3 className="text-2xl text-gray-900 mb-1">
+                  {user.displayName}
+                </h3>
+                {/* <p className="text-lg text-gray-600 mb-3">{user.age} years old</p> */}
+                <Dialog
+                  open={isEditingProfile}
+                  onOpenChange={setIsEditingProfile}
+                >
                   <DialogTrigger asChild>
                     <Button className="bg-indigo-600 hover:bg-indigo-700 rounded-xl">
                       <Edit className="w-5 h-5 mr-2" />
@@ -98,20 +130,30 @@ export function SettingsScreen({ onNavigate, user, setUser }: SettingsScreenProp
                       <div className="space-y-2">
                         <label className="text-base">Name</label>
                         <Input
-                          value={profileData.name}
-                          onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                          value={profileData.displayName}
+                          onChange={(e) =>
+                            setProfileData({
+                              ...profileData,
+                              displayName: e.target.value,
+                            })
+                          }
                           className="h-12 text-lg"
                         />
                       </div>
-                      <div className="space-y-2">
+                      {/* <div className="space-y-2">
                         <label className="text-base">Age</label>
                         <Input
                           type="number"
                           value={profileData.age}
-                          onChange={(e) => setProfileData({ ...profileData, age: e.target.value })}
+                          onChange={(e) =>
+                            setProfileData({
+                              ...profileData,
+                              age: e.target.value,
+                            })
+                          }
                           className="h-12 text-lg"
                         />
-                      </div>
+                      </div> */}
                       <div className="flex gap-3">
                         <Button
                           onClick={handleUpdateProfile}
@@ -148,12 +190,16 @@ export function SettingsScreen({ onNavigate, user, setUser }: SettingsScreenProp
                     </div>
                     <div>
                       <p className="text-lg text-gray-900">Text Size</p>
-                      <p className="text-base text-gray-600">Currently: {settings.textSize}</p>
+                      <p className="text-base text-gray-600">
+                        Currently: {settings.textSize}
+                      </p>
                     </div>
                   </div>
                   <select
                     value={settings.textSize}
-                    onChange={(e) => setSettings({ ...settings, textSize: e.target.value })}
+                    onChange={(e) =>
+                      setSettings({ ...settings, textSize: e.target.value })
+                    }
                     className="h-12 px-4 text-base border-2 rounded-xl"
                   >
                     <option value="small">Small</option>
@@ -176,7 +222,9 @@ export function SettingsScreen({ onNavigate, user, setUser }: SettingsScreenProp
                   </div>
                   <Switch
                     checked={settings.highContrast}
-                    onCheckedChange={(checked) => setSettings({ ...settings, highContrast: checked })}
+                    onCheckedChange={(checked) =>
+                      setSettings({ ...settings, highContrast: checked })
+                    }
                   />
                 </div>
 
@@ -188,12 +236,16 @@ export function SettingsScreen({ onNavigate, user, setUser }: SettingsScreenProp
                     </div>
                     <div>
                       <p className="text-lg text-gray-900">Voice Speed</p>
-                      <p className="text-base text-gray-600">Currently: {settings.voiceSpeed}</p>
+                      <p className="text-base text-gray-600">
+                        Currently: {settings.voiceSpeed}
+                      </p>
                     </div>
                   </div>
                   <select
                     value={settings.voiceSpeed}
-                    onChange={(e) => setSettings({ ...settings, voiceSpeed: e.target.value })}
+                    onChange={(e) =>
+                      setSettings({ ...settings, voiceSpeed: e.target.value })
+                    }
                     className="h-12 px-4 text-base border-2 rounded-xl"
                   >
                     <option value="slow">Slow</option>
@@ -217,12 +269,16 @@ export function SettingsScreen({ onNavigate, user, setUser }: SettingsScreenProp
                   </div>
                   <div>
                     <p className="text-lg text-gray-900">App Language</p>
-                    <p className="text-base text-gray-600">Currently: {settings.language}</p>
+                    <p className="text-base text-gray-600">
+                      Currently: {settings.language}
+                    </p>
                   </div>
                 </div>
                 <select
                   value={settings.language}
-                  onChange={(e) => setSettings({ ...settings, language: e.target.value })}
+                  onChange={(e) =>
+                    setSettings({ ...settings, language: e.target.value })
+                  }
                   className="h-12 px-4 text-base border-2 rounded-xl"
                 >
                   <option value="English">English</option>
@@ -247,13 +303,17 @@ export function SettingsScreen({ onNavigate, user, setUser }: SettingsScreenProp
                       <Bell className="w-7 h-7 text-red-600" />
                     </div>
                     <div>
-                      <p className="text-lg text-gray-900">Medicine Reminders</p>
+                      <p className="text-lg text-gray-900">
+                        Medicine Reminders
+                      </p>
                       <p className="text-base text-gray-600">Sound + Vibration</p>
                     </div>
                   </div>
                   <Switch
                     checked={settings.medicineReminders}
-                    onCheckedChange={(checked) => setSettings({ ...settings, medicineReminders: checked })}
+                    onCheckedChange={(checked) =>
+                      setSettings({ ...settings, medicineReminders: checked })
+                    }
                   />
                 </div>
 
@@ -269,7 +329,9 @@ export function SettingsScreen({ onNavigate, user, setUser }: SettingsScreenProp
                   </div>
                   <Switch
                     checked={settings.familyMessages}
-                    onCheckedChange={(checked) => setSettings({ ...settings, familyMessages: checked })}
+                    onCheckedChange={(checked) =>
+                      setSettings({ ...settings, familyMessages: checked })
+                    }
                   />
                 </div>
               </div>
@@ -292,7 +354,7 @@ export function SettingsScreen({ onNavigate, user, setUser }: SettingsScreenProp
                   </div>
                 </div>
                 <Button
-                  onClick={() => onNavigate('emergency')}
+                  onClick={() => onNavigate("emergency")}
                   className="h-12 px-6 bg-red-500 hover:bg-red-600 rounded-xl"
                 >
                   Manage
@@ -306,7 +368,9 @@ export function SettingsScreen({ onNavigate, user, setUser }: SettingsScreenProp
             <div className="flex items-start gap-4">
               <Shield className="w-8 h-8 text-green-600 flex-shrink-0 mt-1" />
               <div>
-                <h3 className="text-xl text-green-900 mb-3">Privacy & Security</h3>
+                <h3 className="text-xl text-green-900 mb-3">
+                  Privacy & Security
+                </h3>
                 <div className="space-y-2 text-base text-gray-700">
                   <div className="flex items-center gap-2">
                     <span className="text-green-600">🔒</span>
@@ -333,14 +397,15 @@ export function SettingsScreen({ onNavigate, user, setUser }: SettingsScreenProp
           <Card className="p-6 bg-blue-50 border-blue-200">
             <h3 className="text-xl text-blue-900 mb-3">Need Help?</h3>
             <p className="text-base text-gray-700 mb-4">
-              If you need assistance with any settings or have questions, our support team is here to help you 24/7.
+              If you need assistance with any settings or have questions, our
+              support team is here to help you 24/7.
             </p>
             <div className="flex gap-3">
               <Button className="flex-1 h-14 bg-blue-600 hover:bg-blue-700 rounded-xl">
                 Contact Support
               </Button>
               <Button
-                onClick={() => onNavigate('chat')}
+                onClick={() => onNavigate("chat")}
                 variant="outline"
                 className="flex-1 h-14 rounded-xl border-2"
               >
@@ -358,7 +423,9 @@ export function SettingsScreen({ onNavigate, user, setUser }: SettingsScreenProp
                 </div>
                 <div>
                   <p className="text-lg text-gray-900">Logout</p>
-                  <p className="text-base text-gray-600">Sign out of your account</p>
+                  <p className="text-base text-gray-600">
+                    Sign out of your account
+                  </p>
                 </div>
               </div>
               <Button
@@ -381,3 +448,5 @@ export function SettingsScreen({ onNavigate, user, setUser }: SettingsScreenProp
     </div>
   );
 }
+
+    

@@ -5,8 +5,9 @@ import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
-import { Screen, User } from '../app/page';
+import { Screen } from '../app/page';
 import { ImageWithFallback } from './ImageWithFallback';
+import type { User } from '@/firebase/auth/use-user';
 
 interface FamilyConnectScreenProps {
   onNavigate: (screen: Screen) => void;
