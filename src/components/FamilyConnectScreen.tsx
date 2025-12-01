@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { ArrowLeft, Video, Heart, Send, MessageCircle, Phone, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Video, Heart, Send, MessageCircle, Phone, Plus, Trash2, Users } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
