@@ -53,18 +53,14 @@ const mitramChatFlow = ai.defineFlow(
       - Maintain a positive and supportive tone.
       `;
 
-    // Construct the full prompt including history
-    const fullHistory = [
-        ...history,
-        { role: 'user' as const, content: message },
-    ];
+    const fullHistory = [...history, { role: 'user' as const, content: message }];
 
-
-    const { output } = await ai.generate({
+    const response = await ai.generate({
       system: systemPrompt,
       history: fullHistory,
     });
 
-    return output ?? "I'm not sure how to respond to that. Could you please rephrase?";
+    // Safely access the text output and provide a default if it's empty
+    return response.text ?? "I'm not sure how to respond to that. Could you please rephrase?";
   }
 );
