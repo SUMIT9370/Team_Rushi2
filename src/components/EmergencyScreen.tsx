@@ -85,7 +85,7 @@ export function EmergencyScreen({ onNavigate }: EmergencyScreenProps) {
         const storage = getStorage();
         const storageRef = ref(storage, `avatars/emergency/${user.uid}/${Date.now()}_${avatarFile.name}`);
         try {
-          const snapshot = await uploadBytes(storageRef, file);
+          const snapshot = await uploadBytes(storageRef, avatarFile);
           avatarUrl = await getDownloadURL(snapshot.ref);
         } catch (error) {
           console.error("Error uploading avatar:", error);
