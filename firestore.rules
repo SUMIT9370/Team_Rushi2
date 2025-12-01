@@ -12,6 +12,8 @@
  * - /users/{userId}/emergencyContacts/{contactId}: This subcollection stores
  *   emergency contacts for a user. Access is inherited from the parent user
  *   document, ensuring only the user can manage their contacts.
+ * - /users/{userId}/familyMembers/{memberId}: This subcollection stores
+ *   family members. Access is inherited from the parent user document.
  *
  * Key Security Decisions:
  * - User Data Privacy: Users can only create, read, update, or delete their
@@ -71,6 +73,14 @@ service cloud.firestore {
        * @path /users/{userId}/emergencyContacts/{contactId}
        */
       match /emergencyContacts/{contactId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      /**
+       * @description Manages family members for a user. Access is inherited from the user.
+       * @path /users/{userId}/familyMembers/{memberId}
+       */
+      match /familyMembers/{memberId} {
         allow read, write: if isOwner(userId);
       }
     }

@@ -1,5 +1,6 @@
+'use client';
 import { useState } from 'react';
-import { ArrowLeft, Video, Heart, Image, Send, MessageCircle, Phone, Mail } from 'lucide-react';
+import { ArrowLeft, Video, Heart, Send, MessageCircle, Phone, Plus, Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
@@ -8,55 +9,50 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Screen } from '../app/page';
 import { ImageWithFallback } from './ImageWithFallback';
 import type { User } from '@/firebase/auth/use-user';
+import { useUser, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, addDoc, deleteDoc, doc } from 'firebase/firestore';
+
+interface FamilyMember {
+  id: string;
+  name: string;
+  relation: string;
+  avatar: string;
+}
 
 interface FamilyConnectScreenProps {
   onNavigate: (screen: Screen) => void;
   user: User;
 }
 
-interface FamilyMessage {
-  id: number;
-  from: string;
-  message: string;
-  time: string;
-  avatar: string;
-  unread: boolean;
-}
-
-interface SharedPhoto {
-  id: number;
-  from: string;
-  caption: string;
-  time: string;
-  imageUrl: string;
-}
-
 export function FamilyConnectScreen({ onNavigate, user }: FamilyConnectScreenProps) {
-  const [messages, setMessages] = useState<FamilyMessage[]>([]);
+  const db = useFirestore();
+  const familyMembersQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return collection(db, 'users', user.uid, 'familyMembers');
+  }, [db, user]);
 
-  const [sharedPhotos] = useState<SharedPhoto[]>([]);
+  const { data: familyMembers, isLoading } = useCollection<FamilyMember>(familyMembersQuery);
 
-  const [replyingTo, setReplyingTo] = useState<number | null>(null);
-  const [replyText, setReplyText] = useState('');
+  const [isAdding, setIsAdding] = useState(false);
+  const [newMember, setNewMember] = useState({
+    name: '',
+    relation: '',
+    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400',
+  });
 
-  const markAsRead = (id: number) => {
-    setMessages(prev =>
-      prev.map(msg =>
-        msg.id === id ? { ...msg, unread: false } : msg
-      )
-    );
-  };
-
-  const handleReply = (messageId: number) => {
-    if (replyText.trim()) {
-      // In real app, send the reply
-      markAsRead(messageId);
-      setReplyText('');
-      setReplyingTo(null);
+  const handleAddMember = async () => {
+    if (familyMembersQuery && newMember.name && newMember.relation) {
+      await addDoc(familyMembersQuery, newMember);
+      setNewMember({ name: '', relation: '', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400' });
+      setIsAdding(false);
     }
   };
 
-  const unreadCount = messages.filter(m => m.unread).length;
+  const handleDeleteMember = async (id: string) => {
+    if(db && user) {
+        await deleteDoc(doc(db, 'users', user.uid, 'familyMembers', id));
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -75,11 +71,6 @@ export function FamilyConnectScreen({ onNavigate, user }: FamilyConnectScreenPro
               <Heart className="w-8 h-8" />
               <h2 className="text-2xl">Family Connect</h2>
             </div>
-            {unreadCount > 0 && (
-              <Badge className="bg-red-500 text-white border-0 text-base px-4 py-2">
-                {unreadCount} New
-              </Badge>
-            )}
           </div>
         </div>
       </div>
@@ -87,200 +78,107 @@ export function FamilyConnectScreen({ onNavigate, user }: FamilyConnectScreenPro
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto p-6 space-y-6">
-          {/* Quick Video Call */}
-          <Card className="p-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0 shadow-lg hover:shadow-xl transition-shadow">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-2xl mb-2">Video Call Family</h3>
-                <p className="text-lg opacity-90">One-tap to connect with loved ones</p>
-              </div>
-              <Button className="h-20 w-20 bg-white text-purple-600 hover:bg-gray-100 rounded-full shadow-lg">
-                <Video className="w-10 h-10" />
-              </Button>
-            </div>
-          </Card>
-
-          {/* Quick Actions */}
-          <div className="grid md:grid-cols-3 gap-4">
-            <Button className="h-16 bg-green-600 hover:bg-green-700 rounded-xl shadow-md">
-              <Phone className="w-5 h-5 mr-2" />
-              Call Sarah
-            </Button>
-            <Button className="h-16 bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md">
-              <MessageCircle className="w-5 h-5 mr-2" />
-              Send Message
-            </Button>
-            <Button className="h-16 bg-purple-600 hover:bg-purple-700 rounded-xl shadow-md">
-              <Mail className="w-5 h-5 mr-2" />
-              Email All
-            </Button>
-          </div>
-
-          {/* Messages Section */}
           <div className="space-y-4">
-            <h3 className="text-2xl text-gray-900">Messages from Family</h3>
-
-            {messages.map((msg) => (
-              <Card
-                key={msg.id}
-                className={`p-6 shadow-md transition-all hover:shadow-lg ${
-                  msg.unread ? 'bg-blue-50 border-2 border-blue-300' : 'bg-white'
-                }`}
-              >
-                <div className="flex items-start gap-4">
-                  <ImageWithFallback
-                    src={msg.avatar}
-                    alt={msg.from}
-                    className="w-16 h-16 rounded-full object-cover flex-shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <div>
-                        <h4 className="text-xl text-gray-900">{msg.from}</h4>
-                        <span className="text-sm text-gray-500">{msg.time}</span>
-                      </div>
-                      {msg.unread && (
-                        <Badge className="bg-blue-500 text-white border-0">New</Badge>
-                      )}
+            <div className="flex items-center justify-between">
+              <h3 className="text-2xl text-gray-900">Your Family Circle</h3>
+               <Dialog open={isAdding} onOpenChange={setIsAdding}>
+                <DialogTrigger asChild>
+                    <Button className="bg-indigo-600 hover:bg-indigo-700 rounded-xl">
+                        <Plus className="w-5 h-5 mr-2" />
+                        Add Member
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="text-2xl">Add Family Member</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 pt-4">
+                    <div className="space-y-2">
+                      <label className="text-base">Name</label>
+                      <Input
+                        placeholder="Enter name"
+                        value={newMember.name}
+                        onChange={(e) => setNewMember({ ...newMember, name: e.target.value })}
+                        className="h-12 text-lg"
+                      />
                     </div>
-                    <p className="text-lg text-gray-700 mb-4">{msg.message}</p>
-                    
-                    {replyingTo === msg.id ? (
-                      <div className="flex gap-2">
-                        <Input
-                          value={replyText}
-                          onChange={(e) => setReplyText(e.target.value)}
-                          placeholder="Type your reply..."
-                          className="h-12 text-base"
-                          onKeyPress={(e) => e.key === 'Enter' && handleReply(msg.id)}
-                        />
-                        <Button
-                          onClick={() => handleReply(msg.id)}
-                          className="h-12 bg-blue-600 hover:bg-blue-700"
-                        >
-                          <Send className="w-5 h-5" />
-                        </Button>
-                        <Button
-                          onClick={() => setReplyingTo(null)}
-                          variant="outline"
-                          className="h-12"
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={() => {
-                            setReplyingTo(msg.id);
-                            markAsRead(msg.id);
-                          }}
-                          className="h-12 bg-blue-500 hover:bg-blue-600 rounded-xl"
-                        >
-                          <MessageCircle className="w-5 h-5 mr-2" />
-                          Reply
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="h-12 rounded-xl"
-                        >
-                          <Phone className="w-5 h-5 mr-2" />
-                          Call Back
-                        </Button>
-                      </div>
-                    )}
+                    <div className="space-y-2">
+                      <label className="text-base">Relation</label>
+                      <Input
+                        placeholder="e.g., Son, Daughter, Grandchild"
+                        value={newMember.relation}
+                        onChange={(e) => setNewMember({ ...newMember, relation: e.target.value })}
+                        className="h-12 text-lg"
+                      />
+                    </div>
+                     <div className="flex gap-3">
+                      <Button
+                        onClick={handleAddMember}
+                        disabled={!newMember.name || !newMember.relation}
+                        className="flex-1 h-12 bg-green-600 hover:bg-green-700"
+                      >
+                        Add Member
+                      </Button>
+                      <Button
+                        onClick={() => setIsAdding(false)}
+                        variant="outline"
+                        className="flex-1 h-12"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-
-          {/* Photo Sharing Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-2xl text-gray-900">Shared Memories</h3>
-              <Button className="bg-purple-600 hover:bg-purple-700 rounded-xl">
-                <Image className="w-5 h-5 mr-2" />
-                Share Photo
-              </Button>
+                </DialogContent>
+              </Dialog>
             </div>
+
+            {isLoading && <p>Loading family members...</p>}
+            
+            {!isLoading && familyMembers?.length === 0 && (
+                <Card className="p-12 text-center bg-white">
+                    <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-xl text-gray-500">No family members added yet.</p>
+                    <p className="text-base text-gray-400 mt-2">Add your family members to get started.</p>
+                </Card>
+            )}
 
             <div className="grid md:grid-cols-2 gap-4">
-              {sharedPhotos.map((photo) => (
-                <Card key={photo.id} className="overflow-hidden bg-white shadow-md hover:shadow-lg transition-shadow">
-                  <ImageWithFallback
-                    src={photo.imageUrl}
-                    alt={photo.caption}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <p className="text-lg text-gray-900">{photo.caption}</p>
-                        <p className="text-sm text-gray-500">From {photo.from} • {photo.time}</p>
+              {familyMembers?.map((member) => (
+                <Card key={member.id} className="p-6 bg-white shadow-md hover:shadow-lg transition-shadow">
+                  <div className="flex items-center gap-4">
+                    <ImageWithFallback
+                      src={member.avatar}
+                      alt={member.name}
+                      className="w-20 h-20 rounded-full object-cover flex-shrink-0"
+                    />
+                    <div className="flex-1">
+                      <h4 className="text-xl text-gray-900">{member.name}</h4>
+                      <p className="text-base text-gray-600 mb-4">{member.relation}</p>
+                      <div className="flex gap-2">
+                        <Button className="h-10 bg-blue-500 hover:bg-blue-600 rounded-xl flex-1">
+                          <Phone className="w-4 h-4 mr-2" />
+                          Call
+                        </Button>
+                        <Button variant="outline" className="h-10 rounded-xl flex-1">
+                          <MessageCircle className="w-4 h-4 mr-2" />
+                          Message
+                        </Button>
+                         <Button
+                            onClick={() => handleDeleteMember(member.id)}
+                            variant="outline"
+                            size="icon"
+                            className="h-10 w-10 rounded-xl border-red-200 text-red-600 hover:bg-red-50"
+                            title="Remove"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
-                    </div>
-                    <div className="flex gap-2 mt-3">
-                      <Button className="flex-1 h-12 bg-pink-500 hover:bg-pink-600 rounded-xl">
-                        <Heart className="w-5 h-5 mr-2" />
-                        Like
-                      </Button>
-                      <Button variant="outline" className="flex-1 h-12 rounded-xl border-2">
-                        <MessageCircle className="w-5 h-5 mr-2" />
-                        Comment
-                      </Button>
                     </div>
                   </div>
                 </Card>
               ))}
             </div>
           </div>
-
-          {/* Family Circle Info */}
-          <Card className="p-6 bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
-            <h3 className="text-2xl text-purple-900 mb-4">👨‍👩‍👧‍👦 Your Family Circle</h3>
-            <div className="grid md:grid-cols-2 gap-3 text-base text-gray-700">
-              <div className="flex items-center gap-2">
-                <span className="text-green-600">✓</span>
-                <span>3 family members connected</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-green-600">✓</span>
-                <span>Safe & private messaging</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-green-600">✓</span>
-                <span>One-tap video calls</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-green-600">✓</span>
-                <span>Share special moments</span>
-              </div>
-            </div>
-          </Card>
-
-          {/* Tips */}
-          <Card className="p-6 bg-blue-50 border-blue-200">
-            <h3 className="text-xl text-blue-900 mb-4">💡 Stay Connected Tips</h3>
-            <ul className="space-y-2 text-base text-gray-700">
-              <li className="flex gap-2">
-                <span className="text-blue-600">•</span>
-                <span>Check your messages daily to stay in touch</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="text-blue-600">•</span>
-                <span>Share photos of your daily activities</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="text-blue-600">•</span>
-                <span>Schedule weekly video calls with family</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="text-blue-600">•</span>
-                <span>Reply to messages to let them know you're well</span>
-              </li>
-            </ul>
-          </Card>
         </div>
       </div>
     </div>

@@ -24,6 +24,13 @@ export function HomeScreen({ onNavigate, user }: HomeScreenProps) {
 
   const {data: contacts} = useCollection(contactsQuery);
 
+  const familyMembersQuery = useMemoFirebase(() => {
+    if(!firestore || !user) return null;
+    return collection(firestore, 'users', user.uid, 'familyMembers');
+  }, [firestore, user]);
+
+  const { data: familyMembers } = useCollection(familyMembersQuery);
+
   const currentHour = new Date().getHours();
   const greeting = currentHour < 12 ? 'Good Morning' : currentHour < 17 ? 'Good Afternoon' : 'Good Evening';
   const currentDate = new Date().toLocaleDateString('en-US', { 
@@ -109,8 +116,8 @@ export function HomeScreen({ onNavigate, user }: HomeScreenProps) {
               <div className="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center">
                 <Users className="w-7 h-7 text-purple-600" />
               </div>
-              <p className="text-3xl text-gray-900">0</p>
-              <p className="text-sm text-gray-600">New Messages</p>
+              <p className="text-3xl text-gray-900">{familyMembers?.length || 0}</p>
+              <p className="text-sm text-gray-600">Family Members</p>
             </div>
           </Card>
 

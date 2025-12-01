@@ -66,11 +66,36 @@
         "name",
         "phone"
       ]
+    },
+    "FamilyMember": {
+      "title": "Family Member",
+      "type": "object",
+      "description": "Represents a user's family member for the Family Connect feature.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The family member's name."
+        },
+        "relation": {
+          "type": "string",
+          "description": "The family member's relation to the user."
+        },
+        "avatar": {
+          "type": "string",
+          "description": "URL for the family member's avatar image.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "name",
+        "relation"
+      ]
     }
   },
   "auth": {
     "providers": [
-      "password"
+      "password",
+      "google.com"
     ]
   },
   "firestore": {
@@ -93,6 +118,16 @@
             "$ref": "#/entities/EmergencyContact"
           },
           "description": "Stores emergency contacts for a specific user."
+        }
+      },
+      {
+        "path": "/users/{userId}/familyMembers/{memberId}",
+        "definition": {
+          "entityName": "FamilyMember",
+          "schema": {
+            "$ref": "#/entities/FamilyMember"
+          },
+          "description": "Stores family members for a specific user."
         }
       }
     ]
