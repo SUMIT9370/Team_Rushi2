@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { MessageCircle, Bell, AlertCircle, Users, Settings, Mic } from 'lucide-react';
+import { MessageCircle, Bell, AlertCircle, Users, Settings, Mic, Activity } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Screen } from '../app/page';
@@ -9,9 +9,6 @@ import type { User } from '@/firebase/auth/use-user';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { UserData } from '@/firebase/auth/use-user';
-import Image from 'next/image';
-import { getPlaceholderImage, ImagePlaceholder } from '@/lib/placeholder-images';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
 
 const motivationalQuotes = [
   {
@@ -41,15 +38,8 @@ interface HomeScreenProps {
 export function HomeScreen({ onNavigate, user, userData }: HomeScreenProps) {
   const [quote, setQuote] = useState(motivationalQuotes[0]);
   const firestore = useFirestore();
-  const carouselImages = [
-    getPlaceholderImage('carousel-1'),
-    getPlaceholderImage('carousel-2'),
-    getPlaceholderImage('carousel-3'),
-    getPlaceholderImage('carousel-4'),
-  ].filter(Boolean) as ImagePlaceholder[];
 
   useEffect(() => {
-    // Set a random quote on the client side to avoid hydration mismatch
     setQuote(motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]);
   }, []);
 
@@ -82,187 +72,93 @@ export function HomeScreen({ onNavigate, user, userData }: HomeScreenProps) {
     month: 'long', 
     day: 'numeric' 
   });
+  
+  const features = [
+    { name: "Chat", icon: MessageCircle, screen: "chat", color: "text-blue-400" },
+    { name: "Health", icon: Activity, screen: "health", color: "text-green-400" },
+    { name: "Reminders", icon: Bell, screen: "reminders", color: "text-yellow-400" },
+    { name: "Family", icon: Users, screen: "family", color: "text-purple-400" },
+    { name: "Emergency", icon: AlertCircle, screen: "emergency", color: "text-red-400" },
+    { name: "Settings", icon: Settings, screen: "settings", color: "text-gray-400" },
+  ];
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background text-foreground">
+       <div className="absolute inset-0 h-full w-full bg-gradient-to-br from-indigo-900/20 via-background to-purple-900/20 -z-10"></div>
+      
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm sticky top-0 z-10 border-b">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-               <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-cyan-500 rounded-full flex items-center justify-center shadow-lg">
-                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-heart-pulse"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></svg>
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900">MITRAM</h1>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <div className="text-right hidden md:block">
-                <p className="text-base font-semibold text-gray-900">{userData.displayName}</p>
-                <p className="text-sm text-gray-500">{currentDate}</p>
-              </div>
-              <ImageWithFallback
-                src={userData.photoURL ?? undefined}
-                alt={userData.displayName ?? ""}
-                className="w-14 h-14 rounded-full object-cover border-2 border-indigo-200 cursor-pointer transition-transform hover:scale-110"
-                onClick={() => onNavigate('settings')}
-              />
-            </div>
+      <header className="p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-muted-foreground">{currentDate}</p>
+            <h1 className="text-3xl font-bold">{greeting}, {userData.displayName}!</h1>
           </div>
+          <ImageWithFallback
+            src={userData.photoURL ?? undefined}
+            alt={userData.displayName ?? ""}
+            className="w-14 h-14 rounded-full object-cover border-2 border-primary/50 cursor-pointer transition-transform hover:scale-110"
+            onClick={() => onNavigate('settings')}
+          />
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto p-6 space-y-8">
-        {/* Welcome Banner */}
-        <Card className="p-8 md:p-12 bg-gradient-to-r from-indigo-600 to-cyan-600 text-white border-0 shadow-xl overflow-hidden">
-            <div className="relative z-10">
-                <h2 className="text-3xl md:text-4xl mb-2">{greeting}, {userData.displayName}! 👋</h2>
-                <p className="text-xl opacity-90 max-w-2xl">Your trusted companion for health, safety, and connection. What would you like to do today?</p>
+      <main className="p-6 space-y-8">
+
+        {/* Central Hub */}
+        <div className="relative flex flex-col items-center justify-center p-8">
+            <div className="absolute inset-0 grid grid-cols-2 -z-10">
+                <div className="bg-gradient-to-br from-primary/20 to-transparent"></div>
+                <div className="bg-gradient-to-bl from-purple-500/20 to-transparent"></div>
             </div>
-        </Card>
-        
-        {/* Image Carousel */}
-        <Carousel className="w-full" opts={{ loop: true }}>
-          <CarouselContent>
-            {carouselImages.map((image, index) => (
-              <CarouselItem key={index}>
-                <Card className="overflow-hidden">
-                  <div className="aspect-w-16 aspect-h-9">
-                    <Image
-                      src={image.imageUrl}
-                      alt={image.description}
-                      layout="fill"
-                      objectFit="cover"
-                      className="rounded-lg"
-                      data-ai-hint={image.imageHint}
-                    />
+           <div 
+             onClick={() => onNavigate('chat')}
+             className="relative w-48 h-48 bg-card/50 border border-primary/20 rounded-full flex flex-col items-center justify-center text-center p-4 cursor-pointer backdrop-blur-lg shadow-2xl shadow-primary/20 transition-all hover:scale-105 hover:shadow-primary/30"
+           >
+              <div className="absolute inset-0 m-auto w-2/3 h-2/3 bg-primary/20 rounded-full animate-pulse -z-10"></div>
+              <Mic className="w-16 h-16 text-primary mb-2" />
+              <p className="font-semibold">Talk to MITRAM</p>
+           </div>
+           
+           <div className="grid grid-cols-3 gap-6 mt-12 w-full max-w-2xl">
+              {features.filter(f => f.name !== 'Chat').map(feature => (
+                  <div key={feature.name} onClick={() => onNavigate(feature.screen as Screen)} className="text-center group cursor-pointer">
+                      <div className={`w-20 h-20 mx-auto bg-card/50 border border-primary/10 rounded-2xl flex items-center justify-center transition-all group-hover:scale-110 group-hover:bg-primary/10 group-hover:border-primary/30`}>
+                          <feature.icon className={`w-10 h-10 ${feature.color}`} />
+                      </div>
+                      <p className="mt-2 text-sm font-medium text-muted-foreground transition-colors group-hover:text-foreground">{feature.name}</p>
                   </div>
-                </Card>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/50 hover:bg-white/80" />
-          <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/50 hover:bg-white/80" />
-        </Carousel>
+              ))}
+           </div>
+        </div>
 
-
-        {/* Quick Stats */}
+        {/* Stats Section */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <Card className="p-6 border-0 shadow-md hover:shadow-lg transition-shadow bg-white flex flex-col items-center text-center space-y-2">
-              <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center">
-                <Bell className="w-7 h-7 text-blue-600" />
-              </div>
-              <p className="text-3xl font-bold text-gray-900">{reminders?.filter(r => !r.completed).length || 0}</p>
-              <p className="text-sm font-medium text-gray-600">Pending Reminders</p>
+          <Card className="p-4 bg-card/50 border-primary/10 backdrop-blur-sm">
+            <h4 className="text-sm font-medium text-muted-foreground">Pending</h4>
+            <p className="text-3xl font-bold">{reminders?.filter(r => !r.completed).length || 0}</p>
+            <p className="text-sm text-muted-foreground">Reminders</p>
           </Card>
-
-          <Card className="p-6 border-0 shadow-md hover:shadow-lg transition-shadow bg-white flex flex-col items-center text-center space-y-2">
-              <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center">
-                <Users className="w-7 h-7 text-purple-600" />
-              </div>
-              <p className="text-3xl font-bold text-gray-900">{familyMembers?.length || 0}</p>
-              <p className="text-sm font-medium text-gray-600">Family Members</p>
+          <Card className="p-4 bg-card/50 border-primary/10 backdrop-blur-sm">
+            <h4 className="text-sm font-medium text-muted-foreground">Family</h4>
+            <p className="text-3xl font-bold">{familyMembers?.length || 0}</p>
+            <p className="text-sm text-muted-foreground">Members</p>
           </Card>
-
-          <Card className="p-6 border-0 shadow-md hover:shadow-lg transition-shadow bg-white flex flex-col items-center text-center space-y-2 col-span-2 md:col-span-1">
-              <div className="w-14 h-14 bg-red-100 rounded-xl flex items-center justify-center">
-                <AlertCircle className="w-7 h-7 text-red-600" />
-              </div>
-              <p className="text-3xl font-bold text-gray-900">{contacts?.length || 0}</p>
-              <p className="text-sm font-medium text-gray-600">Emergency Contacts</p>
+          <Card className="p-4 bg-card/50 border-primary/10 backdrop-blur-sm col-span-2 md:col-span-1">
+            <h4 className="text-sm font-medium text-muted-foreground">Emergency</h4>
+            <p className="text-3xl font-bold">{contacts?.length || 0}</p>
+            <p className="text-sm text-muted-foreground">Contacts</p>
           </Card>
         </div>
 
-
-        {/* Main Action Cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card 
-            className="p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer bg-blue-500 text-white group"
-            onClick={() => onNavigate('chat')}
-          >
-            <div className="flex flex-col items-start space-y-4">
-              <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <MessageCircle className="w-8 h-8" />
-              </div>
-              <div>
-                <h3 className="text-2xl mb-2">Chat with MITRAM</h3>
-                <p className="text-base opacity-90">Ask me anything, I'm here to help</p>
-              </div>
-            </div>
-          </Card>
-          
-          <Card 
-            className="p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer bg-green-500 text-white group"
-            onClick={() => onNavigate('reminders')}
-          >
-            <div className="flex flex-col items-start space-y-4">
-              <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Bell className="w-8 h-8" />
-              </div>
-              <div>
-                <h3 className="text-2xl mb-2">My Reminders</h3>
-                <p className="text-base opacity-90">Manage medicines & appointments</p>
-              </div>
-            </div>
-          </Card>
-          
-          <Card 
-            className="p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer bg-red-500 text-white group"
-            onClick={() => onNavigate('emergency')}
-          >
-            <div className="flex flex-col items-start space-y-4">
-              <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <AlertCircle className="w-8 h-8" />
-              </div>
-              <div>
-                <h3 className="text-2xl mb-2">Emergency Help</h3>
-                <p className="text-base opacity-90">Quick access to urgent support</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-        
-        <div className="grid md:grid-cols-2 gap-6">
-           <Card 
-            className="p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer bg-purple-500 text-white group"
-            onClick={() => onNavigate('family')}
-          >
-            <div className="flex flex-col items-start space-y-4">
-              <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Users className="w-8 h-8" />
-              </div>
-              <div>
-                <h3 className="text-2xl mb-2">Family Connect</h3>
-                <p className="text-base opacity-90">Stay connected with loved ones</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card 
-            className="p-8 border-0 shadow-lg hover:shadow-xl transition-all cursor-pointer bg-gray-600 text-white group"
-            onClick={() => onNavigate('settings')}
-          >
-            <div className="flex flex-col items-start space-y-4">
-              <div className="w-16 h-16 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Settings className="w-8 h-8" />
-              </div>
-              <div>
-                <h3 className="text-2xl mb-2">Settings</h3>
-                <p className="text-base opacity-90">Customize your experience</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-
-        {/* Voice Assistant Button */}
-        <div className="fixed bottom-8 right-8 z-20">
-          <Button size="icon" className="h-20 w-20 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full shadow-2xl transform hover:scale-110 transition-transform">
-            <Mic className="w-10 h-10" />
-          </Button>
-        </div>
-      </div>
+        {/* Quote Card */}
+        <Card className="p-6 bg-card/50 border-primary/10 backdrop-blur-sm">
+            <blockquote className="space-y-2">
+                <p className="text-lg italic">"{quote.quote}"</p>
+                <footer className="text-sm text-right text-muted-foreground">- {quote.author}</footer>
+            </blockquote>
+        </Card>
+      </main>
     </div>
   );
 }
