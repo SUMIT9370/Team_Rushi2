@@ -2,13 +2,23 @@
 import { useState, useEffect } from 'react';
 import { MessageCircle, Bell, AlertCircle, Users, Settings, Mic, Activity } from 'lucide-react';
 import { Button } from './ui/button';
-import { Card } from './ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Screen } from '../app/page';
 import { ImageWithFallback } from './ImageWithFallback';
 import type { User } from '@/firebase/auth/use-user';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { UserData } from '@/firebase/auth/use-user';
+import Image from 'next/image';
+import { getPlaceholderImage } from '@/lib/placeholder-images';
+
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
 
 const motivationalQuotes = [
   {
@@ -36,8 +46,15 @@ interface HomeScreenProps {
 }
 
 export function HomeScreen({ onNavigate, user, userData }: HomeScreenProps) {
-  const [quote, setQuote] = useState(motivationalQuotes[0]);
+  const [quote, setQuote] = useState({ quote: "", author: "" });
   const firestore = useFirestore();
+
+  const carouselImages = [
+    getPlaceholderImage('carousel-1'),
+    getPlaceholderImage('carousel-2'),
+    getPlaceholderImage('carousel-3'),
+    getPlaceholderImage('carousel-4')
+  ].filter(Boolean) as any[];
 
   useEffect(() => {
     setQuote(motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]);
@@ -74,88 +91,99 @@ export function HomeScreen({ onNavigate, user, userData }: HomeScreenProps) {
   });
   
   const features = [
-    { name: "Chat", icon: MessageCircle, screen: "chat", color: "text-blue-400" },
-    { name: "Health", icon: Activity, screen: "health", color: "text-green-400" },
+    { name: "Chat with AI", icon: MessageCircle, screen: "chat", color: "text-blue-400" },
+    { name: "Health Stats", icon: Activity, screen: "health", color: "text-green-400" },
     { name: "Reminders", icon: Bell, screen: "reminders", color: "text-yellow-400" },
-    { name: "Family", icon: Users, screen: "family", color: "text-purple-400" },
+    { name: "Family Circle", icon: Users, screen: "family", color: "text-purple-400" },
     { name: "Emergency", icon: AlertCircle, screen: "emergency", color: "text-red-400" },
     { name: "Settings", icon: Settings, screen: "settings", color: "text-gray-400" },
   ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-       <div className="absolute inset-0 h-full w-full bg-gradient-to-br from-indigo-900/20 via-background to-purple-900/20 -z-10"></div>
-      
+    <div className="min-h-screen bg-background text-foreground p-4 md:p-8 space-y-8">
       {/* Header */}
-      <header className="p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-muted-foreground">{currentDate}</p>
-            <h1 className="text-3xl font-bold">{greeting}, {userData.displayName}!</h1>
-          </div>
-          <ImageWithFallback
-            src={userData.photoURL ?? undefined}
-            alt={userData.displayName ?? ""}
-            className="w-14 h-14 rounded-full object-cover border-2 border-primary/50 cursor-pointer transition-transform hover:scale-110"
-            onClick={() => onNavigate('settings')}
-          />
+      <header>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">Welcome back, {userData.displayName}! Here's your overview.</p>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="p-6 space-y-8">
-
-        {/* Central Hub */}
-        <div className="relative flex flex-col items-center justify-center p-8">
-            <div className="absolute inset-0 grid grid-cols-2 -z-10">
-                <div className="bg-gradient-to-br from-primary/20 to-transparent"></div>
-                <div className="bg-gradient-to-bl from-purple-500/20 to-transparent"></div>
+      <main className="space-y-8">
+        
+        {/* Welcome & Stats Grid */}
+        <div className="grid lg:grid-cols-3 gap-8">
+          <Card className="lg:col-span-2 bg-card/80 p-6 flex flex-col justify-between">
+            <div>
+              <p className="text-muted-foreground">{greeting}</p>
+              <h2 className="text-2xl font-semibold">Congratulations, {userData.displayName}!</h2>
+              <p className="text-muted-foreground mt-1">You're doing great with your health goals this month.</p>
             </div>
-           <div 
-             onClick={() => onNavigate('chat')}
-             className="relative w-48 h-48 bg-card/50 border border-primary/20 rounded-full flex flex-col items-center justify-center text-center p-4 cursor-pointer backdrop-blur-lg shadow-2xl shadow-primary/20 transition-all hover:scale-105 hover:shadow-primary/30"
-           >
-              <div className="absolute inset-0 m-auto w-2/3 h-2/3 bg-primary/20 rounded-full animate-pulse -z-10"></div>
-              <Mic className="w-16 h-16 text-primary mb-2" />
-              <p className="font-semibold">Talk to MITRAM</p>
-           </div>
-           
-           <div className="grid grid-cols-3 gap-6 mt-12 w-full max-w-2xl">
-              {features.filter(f => f.name !== 'Chat').map(feature => (
-                  <div key={feature.name} onClick={() => onNavigate(feature.screen as Screen)} className="text-center group cursor-pointer">
-                      <div className={`w-20 h-20 mx-auto bg-card/50 border border-primary/10 rounded-2xl flex items-center justify-center transition-all group-hover:scale-110 group-hover:bg-primary/10 group-hover:border-primary/30`}>
-                          <feature.icon className={`w-10 h-10 ${feature.color}`} />
-                      </div>
-                      <p className="mt-2 text-sm font-medium text-muted-foreground transition-colors group-hover:text-foreground">{feature.name}</p>
-                  </div>
-              ))}
-           </div>
+            <div className="mt-4">
+              <Button size="lg" className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white shadow-lg shadow-primary/20" onClick={() => onNavigate('health')}>View Details</Button>
+            </div>
+          </Card>
+          
+          <Card className="p-6 bg-card/80">
+            <h3 className="text-lg font-semibold mb-4">Quick Stats</h3>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <Bell className="w-5 h-5 text-yellow-400" />
+                  <p>Pending Reminders</p>
+                </div>
+                <p className="font-bold text-xl">{reminders?.filter(r => !r.completed).length || 0}</p>
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <Users className="w-5 h-5 text-purple-400" />
+                  <p>Family Members</p>
+                </div>
+                <p className="font-bold text-xl">{familyMembers?.length || 0}</p>
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-400" />
+                  <p>Emergency Contacts</p>
+                </div>
+                <p className="font-bold text-xl">{contacts?.length || 0}</p>
+              </div>
+            </div>
+          </Card>
         </div>
 
-        {/* Stats Section */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <Card className="p-4 bg-card/50 border-primary/10 backdrop-blur-sm">
-            <h4 className="text-sm font-medium text-muted-foreground">Pending</h4>
-            <p className="text-3xl font-bold">{reminders?.filter(r => !r.completed).length || 0}</p>
-            <p className="text-sm text-muted-foreground">Reminders</p>
-          </Card>
-          <Card className="p-4 bg-card/50 border-primary/10 backdrop-blur-sm">
-            <h4 className="text-sm font-medium text-muted-foreground">Family</h4>
-            <p className="text-3xl font-bold">{familyMembers?.length || 0}</p>
-            <p className="text-sm text-muted-foreground">Members</p>
-          </Card>
-          <Card className="p-4 bg-card/50 border-primary/10 backdrop-blur-sm col-span-2 md:col-span-1">
-            <h4 className="text-sm font-medium text-muted-foreground">Emergency</h4>
-            <p className="text-3xl font-bold">{contacts?.length || 0}</p>
-            <p className="text-sm text-muted-foreground">Contacts</p>
-          </Card>
-        </div>
+        {/* Carousel */}
+        <Carousel className="w-full">
+          <CarouselContent>
+            {carouselImages.map((image, index) => (
+              <CarouselItem key={index}>
+                <div className="relative h-64 w-full rounded-2xl overflow-hidden">
+                  <Image
+                    src={image.imageUrl}
+                    alt={image.description}
+                    layout="fill"
+                    objectFit="cover"
+                    className="brightness-75"
+                    data-ai-hint={image.imageHint}
+                  />
+                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                   <div className="absolute bottom-0 left-0 p-6 text-white">
+                      <h3 className="text-2xl font-bold">{image.description}</h3>
+                   </div>
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="ml-12" />
+          <CarouselNext className="mr-12" />
+        </Carousel>
 
         {/* Quote Card */}
-        <Card className="p-6 bg-card/50 border-primary/10 backdrop-blur-sm">
-            <blockquote className="space-y-2">
-                <p className="text-lg italic">"{quote.quote}"</p>
-                <footer className="text-sm text-right text-muted-foreground">- {quote.author}</footer>
+        <Card className="p-6 bg-card/80">
+            <blockquote className="text-center space-y-2">
+                <p className="text-xl italic">"{quote.quote}"</p>
+                <footer className="text-sm text-muted-foreground">- {quote.author}</footer>
             </blockquote>
         </Card>
       </main>

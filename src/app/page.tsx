@@ -11,6 +11,7 @@ import { useState } from "react";
 import { useUser, useUserData } from "@/firebase";
 import { Toaster } from "@/components/ui/toaster";
 import { Loader2 } from "lucide-react";
+import { AppShell } from "@/components/app-shell";
 
 
 export type Screen =
@@ -58,37 +59,34 @@ export default function App() {
       );
     }
 
-
+    let screenComponent;
     switch (currentScreen) {
       case "home":
-        return <HomeScreen onNavigate={setCurrentScreen} user={user} userData={userData} />;
+        screenComponent = <HomeScreen onNavigate={setCurrentScreen} user={user} userData={userData} />;
+        break;
       case "chat":
-        return <ChatScreen onNavigate={setCurrentScreen} user={user} />;
+        screenComponent = <ChatScreen onNavigate={setCurrentScreen} user={user} />;
+        break;
       case "emergency":
-        return (
-          <EmergencyScreen
-            onNavigate={setCurrentScreen}
-          />
-        );
+        screenComponent = <EmergencyScreen onNavigate={setCurrentScreen} />;
+        break;
       case "reminders":
-        return <RemindersScreen onNavigate={setCurrentScreen} user={user} />;
+        screenComponent = <RemindersScreen onNavigate={setCurrentScreen} user={user} />;
+        break;
       case "family":
-        return (
-          <FamilyConnectScreen onNavigate={setCurrentScreen} user={user} />
-        );
+        screenComponent = <FamilyConnectScreen onNavigate={setCurrentScreen} user={user} />;
+        break;
       case "health":
-        return <HealthScreen onNavigate={setCurrentScreen} user={user} />;
+        screenComponent = <HealthScreen onNavigate={setCurrentScreen} user={user} />;
+        break;
       case "settings":
-        return (
-          <SettingsScreen
-            onNavigate={setCurrentScreen}
-            user={user}
-            userData={userData}
-          />
-        );
+        screenComponent = <SettingsScreen onNavigate={setCurrentScreen} user={user} userData={userData} />;
+        break;
       default:
-        return <HomeScreen onNavigate={setCurrentScreen} user={user} userData={userData} />;
+        screenComponent = <HomeScreen onNavigate={setCurrentScreen} user={user} userData={userData} />;
     }
+
+    return <AppShell onNavigate={setCurrentScreen} activeScreen={currentScreen}>{screenComponent}</AppShell>;
   };
 
   return <div className="min-h-screen bg-background">{renderScreen()}<Toaster /></div>;
