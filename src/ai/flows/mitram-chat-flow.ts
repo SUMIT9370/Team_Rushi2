@@ -53,11 +53,10 @@ const mitramChatFlow = ai.defineFlow(
       - Maintain a positive and supportive tone.
       `;
 
-    const fullHistory = [...history, { role: 'user' as const, content: message }];
-
     const response = await ai.generate({
       system: systemPrompt,
-      history: fullHistory,
+      history: history,
+      prompt: message,
     });
 
     // Safely access the text output and provide a default if it's empty
