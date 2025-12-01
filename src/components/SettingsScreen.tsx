@@ -92,11 +92,13 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
       reader.onloadend = async () => {
         const dataUrl = reader.result as string;
 
-        // Update user profile in Auth and Firestore
         if (user && firestore) {
-          const userDocRef = doc(firestore, 'users', user.uid);
-          await updateDoc(userDocRef, { photoURL: dataUrl });
+            // This is a workaround to trigger onAuthStateChanged
+            await updateProfile(user, { photoURL: `updated_at_${Date.now()}` });
+            const userDocRef = doc(firestore, 'users', user.uid);
+            await updateDoc(userDocRef, { photoURL: dataUrl });
         }
+
 
         toast({
           title: 'Avatar Updated',
