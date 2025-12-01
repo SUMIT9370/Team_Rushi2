@@ -8,8 +8,7 @@ import { FamilyConnectScreen } from "@/components/FamilyConnectScreen";
 import { SettingsScreen } from "@/components/SettingsScreen";
 import { HealthScreen } from "@/components/HealthScreen";
 import { useState } from "react";
-import { useUser } from "@/firebase";
-import type { User } from 'firebase/auth';
+import { useUser, useUserData } from "@/firebase";
 import { Toaster } from "@/components/ui/toaster";
 
 
@@ -35,22 +34,23 @@ export interface EmergencyContact {
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("home");
   const { user, isUserLoading } = useUser();
+  const { data: userData, isLoading: isUserDataLoading } = useUserData();
 
   const renderScreen = () => {
-    if (isUserLoading) {
+    if (isUserLoading || isUserDataLoading) {
       return (
         <div className="flex items-center justify-center min-h-screen">
           Loading...
         </div>
       );
     }
-    if (!user) {
+    if (!user || !userData) {
       return <LoginScreen />;
     }
 
     switch (currentScreen) {
       case "home":
-        return <HomeScreen onNavigate={setCurrentScreen} user={user} />;
+        return <HomeScreen onNavigate={setCurrentScreen} user={user} userData={userData} />;
       case "chat":
         return <ChatScreen onNavigate={setCurrentScreen} user={user} />;
       case "emergency":
@@ -72,10 +72,11 @@ export default function App() {
           <SettingsScreen
             onNavigate={setCurrentScreen}
             user={user}
+            userData={userData}
           />
         );
       default:
-        return <HomeScreen onNavigate={setCurrentScreen} user={user} />;
+        return <HomeScreen onNavigate={setCurrentScreen} user={user} userData={userData} />;
     }
   };
 

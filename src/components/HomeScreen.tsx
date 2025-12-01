@@ -6,15 +6,17 @@ import { Badge } from './ui/badge';
 import { Screen } from '../app/page';
 import { ImageWithFallback } from './ImageWithFallback';
 import type { User } from '@/firebase/auth/use-user';
-import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
+import type { UserData } from '@/firebase/auth/use-user';
 
 interface HomeScreenProps {
   onNavigate: (screen: Screen) => void;
   user: User;
+  userData: UserData;
 }
 
-export function HomeScreen({ onNavigate, user }: HomeScreenProps) {
+export function HomeScreen({ onNavigate, user, userData }: HomeScreenProps) {
   const firestore = useFirestore();
 
   const contactsQuery = useMemoFirebase(() => {
@@ -66,12 +68,12 @@ export function HomeScreen({ onNavigate, user }: HomeScreenProps) {
             
             <div className="flex items-center gap-4">
               <div className="text-right hidden md:block">
-                <p className="text-base text-gray-900">{user.displayName}</p>
+                <p className="text-base text-gray-900">{userData.displayName}</p>
                 <p className="text-sm text-gray-500">{currentDate}</p>
               </div>
               <ImageWithFallback
-                src={user.photoURL ?? undefined}
-                alt={user.displayName ?? ""}
+                src={userData.photoURL ?? undefined}
+                alt={userData.displayName ?? ""}
                 className="w-14 h-14 rounded-full object-cover border-2 border-indigo-200 cursor-pointer"
                 onClick={() => onNavigate('settings')}
               />
@@ -87,7 +89,7 @@ export function HomeScreen({ onNavigate, user }: HomeScreenProps) {
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32" />
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24" />
           <div className="relative p-8 md:p-12">
-            <h2 className="text-3xl md:text-4xl mb-2">{greeting}, {user.displayName}! 👋</h2>
+            <h2 className="text-3xl md:text-4xl mb-2">{greeting}, {userData.displayName}! 👋</h2>
             <p className="text-xl opacity-90">How can I help you today?</p>
           </div>
         </Card>

@@ -26,7 +26,7 @@ import {
 } from './ui/dialog';
 import { Screen } from '../app/page';
 import { ImageWithFallback } from './ImageWithFallback';
-import { useUser, type User, useFirestore } from '@/firebase';
+import { useUser, type User, useFirestore, type UserData } from '@/firebase';
 import { signOut } from '@/firebase/auth/signout';
 import { doc, updateDoc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
@@ -35,9 +35,10 @@ import { useToast } from '@/hooks/use-toast';
 interface SettingsScreenProps {
   onNavigate: (screen: Screen) => void;
   user: User;
+  userData: UserData;
 }
 
-export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
+export function SettingsScreen({ onNavigate, user, userData }: SettingsScreenProps) {
   const firestore = useFirestore();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -147,8 +148,8 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
             <div className="flex items-center gap-6">
               <div className="relative">
                 <ImageWithFallback
-                  src={user.photoURL || undefined}
-                  alt={user.displayName || 'user'}
+                  src={userData.photoURL || undefined}
+                  alt={userData.displayName || 'user'}
                   className="w-24 h-24 rounded-full object-cover border-4 border-indigo-200"
                 />
                 <input
@@ -169,7 +170,7 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
               </div>
               <div className="flex-1">
                 <h3 className="text-2xl text-gray-900 mb-1">
-                  {user.displayName}
+                  {userData.displayName}
                 </h3>
                 <p className="text-lg text-gray-600 mb-3">{user.email}</p>
                 <Dialog
