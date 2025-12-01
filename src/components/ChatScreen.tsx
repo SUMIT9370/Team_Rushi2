@@ -56,8 +56,9 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
     setIsTyping(true);
 
     try {
+      // Pass the previous messages as history
       const response = await mitramChat({
-        history: newMessages.slice(0, -1), // Send history without the latest user message
+        history: messages,
         message: messageText,
       });
 
