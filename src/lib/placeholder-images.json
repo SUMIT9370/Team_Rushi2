@@ -3,8 +3,8 @@
     {
       "id": "login-hero",
       "description": "An uplifting image of a caregiver assisting an elderly person, conveying a sense of warmth and support.",
-      "imageUrl": "https://images.unsplash.com/photo-1686052401814-d0430982f8f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y2FyZWdpdmVyJTIwZWxkZXJseXxlbnwwfHx8fDE3NjQ1OTI2NTJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "caregiver elderly"
+      "imageUrl": "https://images.unsplash.com/photo-1593122347891-628469a83424?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxoYXBweSUyMGVsZGVybHklMjBjb3VwbGV8ZW58MHx8fHwxNzY0NzUzMjgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "happy elderly couple"
     },
     {
       "id": "home-banner",
@@ -13,16 +13,34 @@
       "imageHint": "serene home"
     },
     {
-      "id": "health-banner",
-      "description": "An abstract, modern image representing health and technology, like a heart rate graph or a DNA strand.",
-      "imageUrl": "https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8aGVhbHRoJTIwdGVjaG5vbG9neXxlbnwwfHx8fDE3NjQ2MjE4OTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "health technology"
-    },
-    {
       "id": "doctor-note",
       "description": "A professional and friendly-looking doctor.",
       "imageUrl": "https://images.unsplash.com/photo-1659353887977-c310d90c751a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxmcmllbmRseSUyMGRvY3RvcnxlbnwwfHx8fDE3NjQ1NzQ3MjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "friendly doctor"
+    },
+    {
+      "id": "carousel-1",
+      "description": "An elderly man smiling while gardening.",
+      "imageUrl": "https://images.unsplash.com/photo-1620395045305-ech-3-5757_a_garden_in_a_city_of_the_fut_xl-1024-v1-0.jpeg?w=1024",
+      "imageHint": "elderly man gardening"
+    },
+    {
+      "id": "carousel-2",
+      "description": "An elderly woman practicing yoga in a park.",
+      "imageUrl": "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2120&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "imageHint": "elderly woman yoga"
+    },
+    {
+      "id": "carousel-3",
+      "description": "A group of seniors enjoying a board game together.",
+      "imageUrl": "https://images.unsplash.com/photo-1605296867304-46d5465a13f1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyMHx8ZWxkZXJseSUyMGdyb3VwJTIwYWN0aXZpdHl8ZW58MHx8fHwxNzY0NzUzMjgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "seniors board game"
+    },
+    {
+      "id": "carousel-4",
+      "description": "An elderly couple walking hand-in-hand on a beach.",
+      "imageUrl": "https://images.unsplash.com/photo-1593122347891-628469a83424?w=1080",
+      "imageHint": "elderly couple beach"
     }
   ]
 }

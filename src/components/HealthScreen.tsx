@@ -19,30 +19,31 @@ interface HealthScreenProps {
 
 interface HealthRecord {
   id: string;
-  type: 'blood_pressure' | 'heart_rate' | 'blood_sugar' | 'weight' | 'temperature';
+  type: 'blood_pressure' | 'heart_rate' | 'blood_sugar' | 'oxygen_level';
   value: string;
   timestamp: Date;
   status: 'normal' | 'warning' | 'critical';
 }
 
 export function HealthScreen({ onNavigate, user }: HealthScreenProps) {
-  const [records, setRecords] = useState<HealthRecord[]>([]);
+  const [records, setRecords] = useState<HealthRecord[]>([
+     { id: 'bp-init', type: 'blood_pressure', value: '122/81', timestamp: new Date(Date.now() - 86400000), status: 'normal' },
+     { id: 'hr-init', type: 'heart_rate', value: '75', timestamp: new Date(Date.now() - 86400000), status: 'normal' },
+     { id: 'bs-init', type: 'blood_sugar', value: '98', timestamp: new Date(Date.now() - 86400000), status: 'normal' },
+     { id: 'o2-init', type: 'oxygen_level', value: '97', timestamp: new Date(Date.now() - 86400000), status: 'normal' },
+  ]);
 
   const [isLogging, setIsLogging] = useState(false);
   const [newRecord, setNewRecord] = useState({
     bloodPressure: '',
     heartRate: '',
     bloodSugar: '',
-    weight: ''
+    oxygenLevel: ''
   });
-
-  const healthScore = 0; // Set to 0 as there is no data
-  const healthBannerImage = getPlaceholderImage('health-banner');
+  
   const doctorNoteImage = getPlaceholderImage('doctor-note');
 
   const handleLogVitals = () => {
-    // In a real app, this would save to a database.
-    // Here we just add to the local state.
     const newRecords: HealthRecord[] = [];
     if (newRecord.bloodPressure) {
       newRecords.push({
@@ -50,7 +51,7 @@ export function HealthScreen({ onNavigate, user }: HealthScreenProps) {
         type: 'blood_pressure',
         value: newRecord.bloodPressure,
         timestamp: new Date(),
-        status: 'normal' // In a real app, logic would determine this
+        status: 'normal'
       });
     }
     if (newRecord.heartRate) {
@@ -71,8 +72,17 @@ export function HealthScreen({ onNavigate, user }: HealthScreenProps) {
         status: 'normal'
       });
     }
+    if (newRecord.oxygenLevel) {
+      newRecords.push({
+        id: `o2-${Date.now()}`,
+        type: 'oxygen_level',
+        value: newRecord.oxygenLevel,
+        timestamp: new Date(),
+        status: 'normal'
+      });
+    }
     setRecords(prev => [...prev, ...newRecords]);
-    setNewRecord({ bloodPressure: '', heartRate: '', bloodSugar: '', weight: '' });
+    setNewRecord({ bloodPressure: '', heartRate: '', bloodSugar: '', oxygenLevel: '' });
     setIsLogging(false);
   };
 
@@ -83,6 +93,7 @@ export function HealthScreen({ onNavigate, user }: HealthScreenProps) {
   const latestBloodPressure = getLatestRecord('blood_pressure');
   const latestHeartRate = getLatestRecord('heart_rate');
   const latestBloodSugar = getLatestRecord('blood_sugar');
+  const latestOxygenLevel = getLatestRecord('oxygen_level');
 
 
   return (
@@ -160,6 +171,18 @@ export function HealthScreen({ onNavigate, user }: HealthScreenProps) {
                       className="h-12 text-lg"
                     />
                   </div>
+                   <div className="space-y-2">
+                    <label className="text-base flex items-center gap-2">
+                      <Wind className="w-4 h-4 text-cyan-500" />
+                      Oxygen Level (SpO2 %)
+                    </label>
+                    <Input
+                      placeholder="98"
+                      value={newRecord.oxygenLevel}
+                      onChange={(e) => setNewRecord({ ...newRecord, oxygenLevel: e.target.value })}
+                      className="h-12 text-lg"
+                    />
+                  </div>
                   <div className="flex gap-3">
                     <Button
                       onClick={handleLogVitals}
@@ -189,7 +212,6 @@ export function HealthScreen({ onNavigate, user }: HealthScreenProps) {
           <div className="space-y-4">
             <h3 className="text-2xl text-gray-900">Today's Vitals</h3>
             
-            {records.length === 0 ? <Card className='p-6 text-center text-gray-500 bg-white'>No vitals logged yet.</Card> : (
             <div className="grid md:grid-cols-2 gap-4">
               {/* Blood Pressure */}
               { latestBloodPressure && (
@@ -247,9 +269,35 @@ export function HealthScreen({ onNavigate, user }: HealthScreenProps) {
                 </div>
               </Card>
               )}
+
+              {/* Oxygen Level */}
+              { latestOxygenLevel && (
+              <Card className="p-6 bg-white shadow-md">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className="w-14 h-14 bg-cyan-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+                      <Wind className="w-7 h-7 text-cyan-600" />
+                    </div>
+                    <div>
+                      <p className="text-base text-gray-600 mb-1">Oxygen Level</p>
+                      <p className="text-3xl text-gray-900 mb-1">{latestOxygenLevel.value}</p>
+                      <p className="text-sm text-gray-500">SpO2 %</p>
+                    </div>
+                  </div>
+                  <Badge className="bg-green-100 text-green-700 border-0">{latestOxygenLevel.status}</Badge>
+                </div>
+              </Card>
+              )}
             </div>
-            )}
           </div>
+
+          <Card className="p-6 bg-white shadow-md">
+            <div className="flex items-center gap-3 mb-6">
+              <TrendingUp className="w-6 h-6 text-green-600" />
+              <h3 className="text-xl text-gray-900">7-Day Trend</h3>
+            </div>
+            <p className="text-gray-600">Your vitals have been stable and within normal ranges over the past week. Keep up the great work with your health routine!</p>
+          </Card>
 
 
           {/* Health Tips */}
@@ -258,15 +306,15 @@ export function HealthScreen({ onNavigate, user }: HealthScreenProps) {
             <ul className="space-y-3 text-base text-gray-700">
               <li className="flex gap-3">
                 <span className="text-green-600">✓</span>
-                <span>Remember to take any prescribed medication on time.</span>
+                <span>Remember to take any prescribed medication on time. Consistency is key.</span>
               </li>
               <li className="flex gap-3">
                 <span className="text-green-600">✓</span>
-                <span>Stay hydrated - aim for 8 glasses of water today</span>
+                <span>Stay hydrated - aim for 8 glasses of water today to keep your body functioning optimally.</span>
               </li>
               <li className="flex gap-3">
                 <span className="text-green-600">✓</span>
-                <span>Consider a short 15-minute walk if you are feeling up to it.</span>
+                <span>Consider a short 15-minute walk if you are feeling up to it. Light exercise can boost your mood and energy.</span>
               </li>
             </ul>
           </Card>
@@ -285,7 +333,7 @@ export function HealthScreen({ onNavigate, user }: HealthScreenProps) {
                 <div>
                     <h4 className="text-lg text-gray-900 mb-2">Note from Dr. Smith</h4>
                     <p className="text-base text-gray-700">
-                    "Your recent checkup results are excellent. Continue monitoring your blood pressure daily and maintain your current medication schedule. See you at your next appointment on November 25th."
+                    "Your recent checkup results are excellent. Continue monitoring your blood pressure daily and maintain your current medication schedule. Remember to take it easy and get plenty of rest. See you at your next appointment on November 25th."
                     </p>
                 </div>
                 </div>
