@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Screen } from '../app/page';
 import { ImageWithFallback } from './ImageWithFallback';
 import type { User } from '@/firebase/auth/use-user';
+import Image from 'next/image';
+import { getPlaceholderImage } from '@/lib/placeholder-images';
 
 interface HealthScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -35,6 +37,8 @@ export function HealthScreen({ onNavigate, user }: HealthScreenProps) {
   });
 
   const healthScore = 0; // Set to 0 as there is no data
+  const healthBannerImage = getPlaceholderImage('health-banner');
+  const doctorNoteImage = getPlaceholderImage('doctor-note');
 
   const handleLogVitals = () => {
     // In a real app, this would save to a database.
@@ -266,6 +270,28 @@ export function HealthScreen({ onNavigate, user }: HealthScreenProps) {
               </li>
             </ul>
           </Card>
+          
+           {doctorNoteImage && (
+            <Card className="p-6 bg-amber-50 border-amber-200">
+                <div className="flex items-start gap-4">
+                <Image
+                    src={doctorNoteImage.imageUrl}
+                    alt={doctorNoteImage.description}
+                    width={64}
+                    height={64}
+                    className="w-16 h-16 rounded-full object-cover flex-shrink-0"
+                    data-ai-hint={doctorNoteImage.imageHint}
+                />
+                <div>
+                    <h4 className="text-lg text-gray-900 mb-2">Note from Dr. Smith</h4>
+                    <p className="text-base text-gray-700">
+                    "Your recent checkup results are excellent. Continue monitoring your blood pressure daily and maintain your current medication schedule. See you at your next appointment on November 25th."
+                    </p>
+                </div>
+                </div>
+            </Card>
+            )}
+
         </div>
       </div>
     </div>

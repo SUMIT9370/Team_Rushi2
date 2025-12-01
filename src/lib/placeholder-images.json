@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "login-hero",
+      "description": "An uplifting image of a caregiver assisting an elderly person, conveying a sense of warmth and support.",
+      "imageUrl": "https://images.unsplash.com/photo-1686052401814-d0430982f8f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y2FyZWdpdmVyJTIwZWxkZXJseXxlbnwwfHx8fDE3NjQ1OTI2NTJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "caregiver elderly"
+    },
+    {
+      "id": "home-banner",
+      "description": "A bright and serene image of a comfortable living room or a peaceful garden, creating a welcoming atmosphere.",
+      "imageUrl": "https://images.unsplash.com/photo-1761399523458-fbfa38509a95?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzZXJlbmUlMjBob21lfGVufDB8fHx8MTc2NDYyMTg5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "serene home"
+    },
+    {
+      "id": "health-banner",
+      "description": "An abstract, modern image representing health and technology, like a heart rate graph or a DNA strand.",
+      "imageUrl": "https://images.unsplash.com/photo-1569396116180-210c182bedb8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8aGVhbHRoJTIwdGVjaG5vbG9neXxlbnwwfHx8fDE3NjQ2MjE4OTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "health technology"
+    },
+    {
+      "id": "doctor-note",
+      "description": "A professional and friendly-looking doctor.",
+      "imageUrl": "https://images.unsplash.com/photo-1659353887977-c310d90c751a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxmcmllbmRseSUyMGRvY3RvcnxlbnwwfHx8fDE3NjQ1NzQ3MjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "friendly doctor"
+    }
+  ]
 }

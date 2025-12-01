@@ -9,12 +9,9 @@ import type { User } from '@/firebase/auth/use-user';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { UserData } from '@/firebase/auth/use-user';
+import Image from 'next/image';
+import { getPlaceholderImage } from '@/lib/placeholder-images';
 
-interface HomeScreenProps {
-  onNavigate: (screen: Screen) => void;
-  user: User;
-  userData: UserData;
-}
 
 const motivationalQuotes = [
   {
@@ -39,6 +36,7 @@ const motivationalQuotes = [
 export function HomeScreen({ onNavigate, user, userData }: HomeScreenProps) {
   const [quote, setQuote] = useState(motivationalQuotes[0]);
   const firestore = useFirestore();
+  const homeBannerImage = getPlaceholderImage('home-banner');
 
   useEffect(() => {
     // Set a random quote on the client side to avoid hydration mismatch
@@ -108,8 +106,20 @@ export function HomeScreen({ onNavigate, user, userData }: HomeScreenProps) {
       <div className="max-w-7xl mx-auto p-6 space-y-8">
         {/* Welcome Banner */}
         <div className="relative p-8 md:p-12 rounded-2xl overflow-hidden bg-card border shadow-sm">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">{greeting}, {userData.displayName}! 👋</h2>
-            <p className="text-lg text-muted-foreground">How can I help you today?</p>
+            {homeBannerImage && (
+                <Image
+                    src={homeBannerImage.imageUrl}
+                    alt={homeBannerImage.description}
+                    layout="fill"
+                    objectFit="cover"
+                    className="opacity-20"
+                    data-ai-hint={homeBannerImage.imageHint}
+                />
+            )}
+            <div className="relative">
+                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-2">{greeting}, {userData.displayName}! 👋</h2>
+                <p className="text-lg text-muted-foreground">How can I help you today?</p>
+            </div>
         </div>
 
         {/* Quick Stats */}
