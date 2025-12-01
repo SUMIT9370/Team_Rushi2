@@ -90,6 +90,49 @@
         "name",
         "relation"
       ]
+    },
+    "Reminder": {
+      "title": "Reminder",
+      "type": "object",
+      "description": "A reminder for a user, such as for medication or an appointment.",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the reminder."
+        },
+        "time": {
+          "type": "string",
+          "description": "The time for the reminder."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "medicine",
+            "doctor",
+            "water",
+            "other"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "An optional description for the reminder."
+        },
+        "completed": {
+          "type": "boolean",
+          "description": "Indicates if the reminder has been completed."
+        },
+        "emoji": {
+          "type": "string",
+          "description": "An emoji to visually represent the reminder type."
+        }
+      },
+      "required": [
+        "title",
+        "time",
+        "type",
+        "completed",
+        "emoji"
+      ]
     }
   },
   "auth": {
@@ -128,6 +171,16 @@
             "$ref": "#/entities/FamilyMember"
           },
           "description": "Stores family members for a specific user."
+        }
+      },
+      {
+        "path": "/users/{userId}/reminders/{reminderId}",
+        "definition": {
+          "entityName": "Reminder",
+          "schema": {
+            "$ref": "#/entities/Reminder"
+          },
+          "description": "Stores reminders for a specific user."
         }
       }
     ]

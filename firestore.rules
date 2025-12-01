@@ -84,6 +84,14 @@ service cloud.firestore {
       match /familyMembers/{memberId} {
         allow read, write: if isOwner(userId);
       }
+      
+      /**
+       * @description Manages reminders for a user. Access is inherited from the user.
+       * @path /users/{userId}/reminders/{reminderId}
+       */
+      match /reminders/{reminderId} {
+        allow read, write: if isOwner(userId);
+      }
     }
   }
 }

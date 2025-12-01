@@ -30,6 +30,14 @@ export function HomeScreen({ onNavigate, user }: HomeScreenProps) {
   }, [firestore, user]);
 
   const { data: familyMembers } = useCollection(familyMembersQuery);
+  
+  const remindersQuery = useMemoFirebase(() => {
+    if(!firestore || !user) return null;
+    return collection(firestore, 'users', user.uid, 'reminders');
+  }, [firestore, user]);
+
+  const { data: reminders } = useCollection(remindersQuery);
+
 
   const currentHour = new Date().getHours();
   const greeting = currentHour < 12 ? 'Good Morning' : currentHour < 17 ? 'Good Afternoon' : 'Good Evening';
@@ -106,7 +114,7 @@ export function HomeScreen({ onNavigate, user }: HomeScreenProps) {
               <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center">
                 <Bell className="w-7 h-7 text-blue-600" />
               </div>
-              <p className="text-3xl text-gray-900">0</p>
+              <p className="text-3xl text-gray-900">{reminders?.filter(r => !r.completed).length || 0}</p>
               <p className="text-sm text-gray-600">Pending Reminders</p>
             </div>
           </Card>

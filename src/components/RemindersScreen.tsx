@@ -1,3 +1,5 @@
+
+'use client';
 import { useState } from 'react';
 import { ArrowLeft, Pill, Calendar, Droplet, Plus, Check, Clock, Trash2, Bell } from 'lucide-react';
 import { Button } from './ui/button';
@@ -7,6 +9,8 @@ import { Input } from './ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Screen } from '../app/page';
 import type { User } from '@/firebase/auth/use-user';
+import { useUser, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, addDoc, deleteDoc, doc, updateDoc, query, orderBy } from 'firebase/firestore';
 
 
 interface RemindersScreenProps {
@@ -15,7 +19,7 @@ interface RemindersScreenProps {
 }
 
 interface Reminder {
-  id: number;
+  id: string;
   type: 'medicine' | 'doctor' | 'water' | 'other';
   title: string;
   time: string;
@@ -25,8 +29,14 @@ interface Reminder {
 }
 
 export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
-  const [reminders, setReminders] = useState<Reminder[]>([]);
+  const db = useFirestore();
+  const remindersQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return query(collection(db, 'users', user.uid, 'reminders'), orderBy('time'));
+  }, [db, user]);
 
+  const { data: reminders, isLoading } = useCollection<Reminder>(remindersQuery);
+  
   const [isAdding, setIsAdding] = useState(false);
   const [newReminder, setNewReminder] = useState({
     title: '',
@@ -35,22 +45,23 @@ export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
     type: 'other' as const
   });
 
-  const toggleReminder = (id: number) => {
-    setReminders(prev =>
-      prev.map(reminder =>
-        reminder.id === id ? { ...reminder, completed: !reminder.completed } : reminder
-      )
-    );
+  const toggleReminder = async (id: string, currentStatus: boolean) => {
+    if (db && user) {
+        const reminderDoc = doc(db, 'users', user.uid, 'reminders', id);
+        await updateDoc(reminderDoc, { completed: !currentStatus });
+    }
   };
 
-  const deleteReminder = (id: number) => {
-    setReminders(prev => prev.filter(r => r.id !== id));
+  const deleteReminder = async (id: string) => {
+    if (db && user) {
+        const reminderDoc = doc(db, 'users', user.uid, 'reminders', id);
+        await deleteDoc(reminderDoc);
+    }
   };
 
-  const handleAddReminder = () => {
-    if (newReminder.title && newReminder.time) {
-      const reminder: Reminder = {
-        id: Date.now(),
+  const handleAddReminder = async () => {
+    if (db && user && newReminder.title && newReminder.time) {
+      const reminder: Omit<Reminder, 'id'> = {
         type: newReminder.type,
         title: newReminder.title,
         time: newReminder.time,
@@ -58,7 +69,8 @@ export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
         completed: false,
         emoji: newReminder.type === 'medicine' ? '💊' : newReminder.type === 'water' ? '💧' : newReminder.type === 'doctor' ? '🏥' : '📝'
       };
-      setReminders(prev => [...prev, reminder].sort((a, b) => a.time.localeCompare(b.time)));
+      const remindersCollection = collection(db, 'users', user.uid, 'reminders');
+      await addDoc(remindersCollection, reminder);
       setNewReminder({ title: '', time: '', description: '', type: 'other' });
       setIsAdding(false);
     }
@@ -77,9 +89,10 @@ export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
     }
   };
 
-  const completedCount = reminders.filter(r => r.completed).length;
-  const pendingCount = reminders.filter(r => !r.completed).length;
-  const progress = reminders.length > 0 ? (completedCount / reminders.length) * 100 : 0;
+  const completedCount = reminders?.filter(r => r.completed).length || 0;
+  const pendingCount = reminders?.filter(r => !r.completed).length || 0;
+  const totalCount = reminders?.length || 0;
+  const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -116,7 +129,7 @@ export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
               <div>
                 <h3 className="text-2xl text-gray-900 mb-1">Today's Progress</h3>
                 <p className="text-lg text-gray-600">
-                  {completedCount} of {reminders.length} tasks completed
+                  {completedCount} of {totalCount} tasks completed
                 </p>
               </div>
               <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-md">
@@ -138,21 +151,21 @@ export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
             <Card className="p-4 bg-blue-500 text-white border-0 shadow-md">
               <Pill className="w-7 h-7 mb-2" />
               <p className="text-2xl">
-                {reminders.filter(r => r.type === 'medicine').length}
+                {reminders?.filter(r => r.type === 'medicine').length || 0}
               </p>
               <p className="text-sm opacity-90">Medicines</p>
             </Card>
             <Card className="p-4 bg-cyan-500 text-white border-0 shadow-md">
               <Droplet className="w-7 h-7 mb-2" />
               <p className="text-2xl">
-                {reminders.filter(r => r.type === 'water').length}
+                {reminders?.filter(r => r.type === 'water').length || 0}
               </p>
               <p className="text-sm opacity-90">Water</p>
             </Card>
             <Card className="p-4 bg-red-500 text-white border-0 shadow-md">
               <Calendar className="w-7 h-7 mb-2" />
               <p className="text-2xl">
-                {reminders.filter(r => r.type === 'doctor').length}
+                {reminders?.filter(r => r.type === 'doctor').length || 0}
               </p>
               <p className="text-sm opacity-90">Appointments</p>
             </Card>
@@ -234,14 +247,15 @@ export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
           {/* Reminders List */}
           <div className="space-y-4">
             <h3 className="text-2xl text-gray-900">Today's Schedule</h3>
-            {reminders.length === 0 ? (
+            {isLoading && <p>Loading reminders...</p>}
+            {!isLoading && reminders?.length === 0 ? (
               <Card className="p-12 text-center bg-white">
                 <Bell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <p className="text-xl text-gray-500">No reminders yet</p>
                 <p className="text-base text-gray-400 mt-2">Add your first reminder to get started</p>
               </Card>
             ) : (
-              reminders.map((reminder) => (
+              reminders?.map((reminder) => (
                 <Card
                   key={reminder.id}
                   className={`p-6 shadow-md transition-all hover:shadow-lg ${
@@ -268,7 +282,7 @@ export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
                         </div>
                         <div className="flex gap-2 flex-shrink-0">
                           <Button
-                            onClick={() => toggleReminder(reminder.id)}
+                            onClick={() => toggleReminder(reminder.id, reminder.completed)}
                             className={`h-12 w-12 rounded-full ${
                               reminder.completed
                                 ? 'bg-green-500 hover:bg-green-600'
