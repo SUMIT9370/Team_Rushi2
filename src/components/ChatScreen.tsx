@@ -183,17 +183,17 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
     let message = '';
     switch (action) {
       case 'medicine':
-        message = 'Show me my medicine reminders';
-        break;
+        onNavigate('reminders');
+        return;
       case 'appointments':
-        message = 'Show my appointments';
-        break;
+        onNavigate('reminders');
+        return;
       case 'health':
-        message = 'Check my health status';
-        break;
+        onNavigate('health');
+        return;
       case 'family':
-        message = 'Connect with my family';
-        break;
+        onNavigate('family');
+        return;
       case 'emergency':
         onNavigate('emergency');
         return;
@@ -207,27 +207,28 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-secondary">
       {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-lg">
-        <div className="max-w-4xl mx-auto px-6 py-4">
+      <div className="bg-background/80 backdrop-blur-sm sticky top-0 z-10 border-b">
+        <div className="max-w-4xl mx-auto px-4 py-3">
           <div className="flex items-center gap-4">
             <Button
               onClick={() => onNavigate('home')}
               variant="ghost"
-              className="text-white hover:bg-white/20 h-12 w-12 rounded-full p-0"
+              size="icon"
+              className="h-10 w-10 rounded-full"
             >
-              <ArrowLeft className="w-6 h-6" />
+              <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="flex items-center gap-3 flex-1">
-              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                <Heart className="w-6 h-6" />
+              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                <Heart className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h2 className="text-xl">MITRAM Assistant</h2>
+                <h2 className="text-lg font-semibold">MITRAM Assistant</h2>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                  <p className="text-sm opacity-90">Always here for you</p>
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <p className="text-xs text-muted-foreground">Always here for you</p>
                 </div>
               </div>
             </div>
@@ -237,29 +238,30 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto p-6 space-y-6">
+        <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex items-end gap-2 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <div className={`max-w-[80%] ${message.sender === 'user' ? 'order-2' : 'order-1'}`}>
+              <div className={`max-w-[85%] ${message.sender === 'user' ? 'order-2' : 'order-1'}`}>
                 <Card
-                  className={`p-4 shadow-md ${
+                  className={`p-3 md:p-4 shadow-sm ${
                     message.sender === 'user'
-                      ? 'bg-indigo-600 text-white border-0'
-                      : 'bg-white border-gray-200'
+                      ? 'bg-primary text-primary-foreground rounded-br-none'
+                      : 'bg-card text-card-foreground rounded-bl-none'
                   }`}
                 >
-                  <p className="text-lg leading-relaxed">{message.text}</p>
-                  <p className={`text-xs mt-2 ${message.sender === 'user' ? 'text-indigo-200' : 'text-gray-400'}`}>
-                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </p>
+                  <p className="text-base leading-relaxed">{message.text}</p>
+                  
                 </Card>
+                <p className={`text-xs mt-1.5 px-1 ${message.sender === 'user' ? 'text-right' : 'text-left'} text-muted-foreground`}>
+                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </p>
 
                 {/* Quick Options */}
-                {message.options && message.options.length > 0 && (
-                  <div className="mt-3 grid grid-cols-2 gap-2">
+                {message.options && message.sender === 'mitram' && (
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {message.options.map((option, index) => {
                       const Icon = option.icon;
                       return (
@@ -267,10 +269,10 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
                           key={index}
                           onClick={() => handleOptionClick(option.action)}
                           variant="outline"
-                          className="h-auto py-3 px-4 flex items-center gap-2 bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-indigo-500 rounded-xl transition-all"
+                          className="h-auto py-2.5 px-3 flex items-center justify-start gap-3 bg-card hover:bg-accent border shadow-sm rounded-lg transition-all"
                         >
-                          <Icon className="w-5 h-5 text-indigo-600" />
-                          <span className="text-sm">{option.label}</span>
+                          <Icon className="w-5 h-5 text-primary" />
+                          <span className="text-sm font-medium">{option.label}</span>
                         </Button>
                       );
                     })}
@@ -283,11 +285,11 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
           {/* Typing Indicator */}
           {isTyping && (
             <div className="flex justify-start">
-              <Card className="p-4 bg-white border-gray-200 shadow-md">
-                <div className="flex gap-2">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              <Card className="p-4 bg-card border-gray-200 shadow-sm">
+                <div className="flex gap-1.5">
+                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
               </Card>
             </div>
@@ -298,11 +300,13 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
       </div>
 
       {/* Input Area */}
-      <div className="bg-white border-t-2 border-gray-200 shadow-lg">
-        <div className="max-w-4xl mx-auto p-4">
-          <div className="flex gap-3">
+      <div className="bg-background/80 backdrop-blur-sm border-t sticky bottom-0">
+        <div className="max-w-4xl mx-auto p-2 sm:p-4">
+          <div className="flex items-center gap-2">
             <Button
-              className="h-14 w-14 bg-purple-600 hover:bg-purple-700 rounded-full flex-shrink-0 shadow-md"
+              variant="secondary"
+              size="icon"
+              className="h-12 w-12 rounded-full flex-shrink-0 shadow-sm"
               title="Voice Input"
             >
               <Mic className="w-6 h-6" />
@@ -312,12 +316,13 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Type your message..."
-              className="h-14 text-lg rounded-2xl border-2 border-gray-200 focus:border-indigo-500"
+              className="h-12 text-base rounded-full border-2 border-border focus:border-primary shadow-sm"
             />
             <Button
               onClick={() => handleSend()}
               disabled={!inputValue.trim()}
-              className="h-14 w-14 bg-indigo-600 hover:bg-indigo-700 rounded-full flex-shrink-0 shadow-md disabled:opacity-50"
+              size="icon"
+              className="h-12 w-12 bg-primary hover:bg-primary/90 rounded-full flex-shrink-0 shadow-sm disabled:opacity-50"
             >
               <Send className="w-6 h-6" />
             </Button>

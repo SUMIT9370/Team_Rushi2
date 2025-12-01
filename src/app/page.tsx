@@ -38,16 +38,26 @@ export default function App() {
   const { data: userData, isLoading: isUserDataLoading } = useUserData();
 
   const renderScreen = () => {
-    if (isUserLoading || isUserDataLoading) {
+    if (isUserLoading || (user && isUserDataLoading)) {
       return (
         <div className="flex items-center justify-center min-h-screen bg-background">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
         </div>
       );
     }
-    if (!user || !userData) {
+    if (!user) {
       return <LoginScreen />;
     }
+
+    if (!userData) {
+       return (
+        <div className="flex items-center justify-center min-h-screen bg-background">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <p className="ml-4 text-muted-foreground">Loading user data...</p>
+        </div>
+      );
+    }
+
 
     switch (currentScreen) {
       case "home":

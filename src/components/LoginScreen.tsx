@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { ChevronRight, Shield, Users, Activity } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -36,7 +36,6 @@ export function LoginScreen() {
         title: 'Success!',
         description: 'Your account has been created.',
       });
-      // User will be automatically signed in by onAuthStateChanged
     }
   };
 
@@ -49,7 +48,6 @@ export function LoginScreen() {
         description: error.message,
       });
     }
-    // On success, onAuthStateChanged will handle the rest
   };
 
   return (
@@ -78,7 +76,7 @@ export function LoginScreen() {
         </div>
 
         {/* Right Side - Login Form */}
-        <Card className="shadow-2xl border-0 bg-card">
+        <Card className="shadow-lg border-0 bg-card">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">
               {isSigningUp ? 'Create an Account' : 'Welcome Back!'}
@@ -99,7 +97,7 @@ export function LoginScreen() {
                   placeholder="Enter your name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="h-12 text-base rounded-xl"
+                  className="h-12 text-base rounded-lg"
                 />
               </div>
             )}
@@ -113,7 +111,7 @@ export function LoginScreen() {
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-12 text-base rounded-xl"
+                className="h-12 text-base rounded-lg"
               />
             </div>
             <div className="space-y-2">
@@ -129,7 +127,7 @@ export function LoginScreen() {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-12 text-base rounded-xl"
+                className="h-12 text-base rounded-lg"
               />
             </div>
 
@@ -137,7 +135,7 @@ export function LoginScreen() {
               <Button
                 onClick={handleSignUp}
                 size="lg"
-                className="w-full h-14 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-500 text-white rounded-xl shadow-lg text-lg"
+                className="w-full h-12 bg-primary text-primary-foreground rounded-lg shadow-lg text-base"
               >
                 Sign Up
                 <ChevronRight className="w-5 h-5 ml-2" />
@@ -146,7 +144,7 @@ export function LoginScreen() {
               <Button
                 onClick={handleSignIn}
                 size="lg"
-                className="w-full h-14 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-500 text-white rounded-xl shadow-lg text-lg"
+                className="w-full h-12 bg-primary text-primary-foreground rounded-lg shadow-lg text-base"
               >
                 Sign In
                 <ChevronRight className="w-5 h-5 ml-2" />
