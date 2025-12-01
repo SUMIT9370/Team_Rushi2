@@ -1,4 +1,5 @@
 'use client';
+import { useState, useEffect } from 'react';
 import { MessageCircle, Bell, AlertCircle, Users, Settings, Mic } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
@@ -16,8 +17,34 @@ interface HomeScreenProps {
   userData: UserData;
 }
 
+const motivationalQuotes = [
+  {
+    quote: "Age is an opportunity no less than youth itself.",
+    author: "Henry Wadsworth Longfellow",
+  },
+  {
+    quote: "The great thing about getting older is that you don't lose all the other ages you've been.",
+    author: "Madeleine L'Engle",
+  },
+  {
+    quote: "You are never too old to set another goal or to dream a new dream.",
+    author: "C.S. Lewis",
+  },
+  {
+    quote: "Wrinkles should merely indicate where the smiles have been.",
+    author: "Mark Twain",
+  },
+];
+
+
 export function HomeScreen({ onNavigate, user, userData }: HomeScreenProps) {
+  const [quote, setQuote] = useState(motivationalQuotes[0]);
   const firestore = useFirestore();
+
+  useEffect(() => {
+    // Set a random quote on the client side to avoid hydration mismatch
+    setQuote(motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]);
+  }, []);
 
   const contactsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
@@ -103,7 +130,7 @@ export function HomeScreen({ onNavigate, user, userData }: HomeScreenProps) {
             <div>
               <p className="text-xl text-gray-800 mb-1">Today's Inspiration</p>
               <p className="text-lg text-gray-600 italic">
-                "Age is an opportunity no less than youth itself." - Henry Wadsworth Longfellow
+                "{quote.quote}" - {quote.author}
               </p>
             </div>
           </div>
