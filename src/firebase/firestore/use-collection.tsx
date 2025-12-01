@@ -5,10 +5,6 @@ import {
   onSnapshot,
   query,
   collection,
-  where,
-  orderBy,
-  limit,
-  startAfter,
   Query,
   DocumentData,
   Firestore,
@@ -21,19 +17,19 @@ interface UseCollectionOptions {
   listen?: boolean;
 }
 
-export function useCollection<T>(
+export function useCollection<T extends { id: string }>(
   path: string,
   options?: UseCollectionOptions
 ) {
   const db = useFirestore();
-  const [data, setData = useState<T[] | null>(null);
-  const [loading, setLoading = useState(true);
-  const [error, setError = useState<Error | null>(null);
+  const [data, setData] = useState<T[] | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  const memoizedConstraints = useMemo(() =options?.constraints || [], [options?.constraints]);
+  const memoizedConstraints = useMemo(() => options?.constraints || [], [options?.constraints]);
 
-  useEffect(() = {
-    if (!db) {
+  useEffect(() => {
+    if (!db || !path) {
       setLoading(false);
       return;
     }
@@ -43,22 +39,22 @@ export function useCollection<T>(
 
     const unsubscribe = onSnapshot(
       q,
-      (snapshot) = {
+      (snapshot) => {
         const result: T[] = [];
-        snapshot.forEach((doc) = {
+        snapshot.forEach((doc) => {
           result.push({ id: doc.id, ...doc.data() } as T);
         });
         setData(result);
         setLoading(false);
       },
-      (err) = {
+      (err) => {
         console.error(`Error fetching collection ${path}:`, err);
         setError(err);
         setLoading(false);
       }
     );
 
-    return () = unsubscribe();
+    return () => unsubscribe();
   }, [db, path, memoizedConstraints]);
 
   return { data, loading, error };

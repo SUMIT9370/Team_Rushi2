@@ -2,13 +2,13 @@
 import { initializeFirebase } from './config';
 import {
   FirebaseProvider,
-  FirebaseClientProvider,
   useFirebase,
   useFirebaseApp,
   useFirestore,
   useAuth,
   useUser,
 } from './provider';
+import { FirebaseClientProvider } from './client-provider';
 import { useCollection } from './firestore/use-collection';
 import { useDoc } from './firestore/use-doc';
 

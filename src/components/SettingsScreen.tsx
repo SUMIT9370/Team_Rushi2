@@ -26,7 +26,7 @@ import {
 } from "./ui/dialog";
 import { Screen } from "../app/page";
 import { ImageWithFallback } from "./ImageWithFallback";
-import { useUser, type User } from "@/firebase/auth/use-user";
+import { useUser, type User } from "@/firebase";
 import { signOut } from "@/firebase/auth/signout";
 import { doc, updateDoc } from "firebase/firestore";
 import { useFirestore } from "@/firebase";
@@ -38,7 +38,7 @@ interface SettingsScreenProps {
 
 export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
   const firestore = useFirestore();
-  const { updateUser } = useUser();
+  // const { updateUser } = useUser();
   const [settings, setSettings] = useState({
     highContrast: false,
     medicineReminders: true,
@@ -63,7 +63,7 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
 
   const handleUpdateProfile = async () => {
     if (profileData.displayName) {
-      await updateUser({ displayName: profileData.displayName });
+      // await updateUser({ displayName: profileData.displayName });
       if (firestore && user.uid) {
         const userDocRef = doc(firestore, "users", user.uid);
         await updateDoc(userDocRef, {

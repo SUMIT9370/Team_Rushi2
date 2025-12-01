@@ -4,13 +4,13 @@ import { useState, useEffect } from 'react';
 import { onSnapshot, doc, DocumentData, Firestore } from 'firebase/firestore';
 import { useFirestore } from '../provider';
 
-export function useDoc<T>(path: string) {
+export function useDoc<T extends { id: string }>(path: string) {
   const db = useFirestore();
-  const [data, setData = useState<T | null>(null);
-  const [loading, setLoading = useState(true);
-  const [error, setError = useState<Error | null>(null);
+  const [data, setData] = useState<T | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() = {
+  useEffect(() => {
     if (!db || !path) {
       setLoading(false);
       return;
@@ -20,7 +20,7 @@ export function useDoc<T>(path: string) {
 
     const unsubscribe = onSnapshot(
       docRef,
-      (docSnap) = {
+      (docSnap) => {
         if (docSnap.exists()) {
           setData({ id: docSnap.id, ...docSnap.data() } as T);
         } else {
@@ -28,14 +28,14 @@ export function useDoc<T>(path: string) {
         }
         setLoading(false);
       },
-      (err) = {
+      (err) => {
         console.error(`Error fetching document ${path}:`, err);
         setError(err);
         setLoading(false);
       }
     );
 
-    return () = unsubscribe();
+    return () => unsubscribe();
   }, [db, path]);
 
   return { data, loading, error };
