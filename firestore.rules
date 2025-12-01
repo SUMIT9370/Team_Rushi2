@@ -102,6 +102,12 @@ service cloud.firestore {
       allow update: if isExistingOwner(userId) && hasImmutableUserId();
       allow delete: if isExistingOwner(userId);
     }
+    
+    // Emergency Contacts subcollection
+    match /users/{userId}/emergencyContacts/{contactId} {
+      allow read, write: if isOwner(userId);
+    }
+    
 
     /**
      * @description Manages admin role assignments. This collection is locked down from all
