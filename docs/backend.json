@@ -82,7 +82,7 @@
           "schema": {
             "$ref": "#/entities/User"
           },
-          "description": "Stores user profile data. Path-based ownership ensures only the user can access or modify their own data."
+          "description": "Stores user profile data."
         }
       },
       {
@@ -92,7 +92,7 @@
           "schema": {
             "$ref": "#/entities/EmergencyContact"
           },
-          "description": "Stores emergency contacts for a specific user. Only the user can manage their own contacts."
+          "description": "Stores emergency contacts for a specific user."
         }
       }
     ]

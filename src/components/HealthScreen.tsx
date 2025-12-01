@@ -1,3 +1,4 @@
+'use client';
 import { useState } from 'react';
 import { ArrowLeft, Activity, Heart, Droplet, Wind, TrendingUp, Calendar, Plus } from 'lucide-react';
 import { Button } from './ui/button';
@@ -15,7 +16,7 @@ interface HealthScreenProps {
 }
 
 interface HealthRecord {
-  id: number;
+  id: string;
   type: 'blood_pressure' | 'heart_rate' | 'blood_sugar' | 'weight' | 'temperature';
   value: string;
   timestamp: Date;
@@ -23,29 +24,7 @@ interface HealthRecord {
 }
 
 export function HealthScreen({ onNavigate, user }: HealthScreenProps) {
-  const [records, setRecords] = useState<HealthRecord[]>([
-    {
-      id: 1,
-      type: 'blood_pressure',
-      value: '120/80',
-      timestamp: new Date(),
-      status: 'normal'
-    },
-    {
-      id: 2,
-      type: 'heart_rate',
-      value: '72',
-      timestamp: new Date(),
-      status: 'normal'
-    },
-    {
-      id: 3,
-      type: 'blood_sugar',
-      value: '95',
-      timestamp: new Date(),
-      status: 'normal'
-    }
-  ]);
+  const [records, setRecords] = useState<HealthRecord[]>([]);
 
   const [isLogging, setIsLogging] = useState(false);
   const [newRecord, setNewRecord] = useState({
@@ -55,31 +34,52 @@ export function HealthScreen({ onNavigate, user }: HealthScreenProps) {
     weight: ''
   });
 
-  const healthScore = 98;
+  const healthScore = 0; // Set to 0 as there is no data
 
   const handleLogVitals = () => {
-    // Add new records
+    // In a real app, this would save to a database.
+    // Here we just add to the local state.
+    const newRecords: HealthRecord[] = [];
     if (newRecord.bloodPressure) {
-      setRecords(prev => [...prev, {
-        id: Date.now(),
+      newRecords.push({
+        id: `bp-${Date.now()}`,
         type: 'blood_pressure',
         value: newRecord.bloodPressure,
         timestamp: new Date(),
-        status: 'normal'
-      }]);
+        status: 'normal' // In a real app, logic would determine this
+      });
     }
     if (newRecord.heartRate) {
-      setRecords(prev => [...prev, {
-        id: Date.now() + 1,
+      newRecords.push({
+        id: `hr-${Date.now()}`,
         type: 'heart_rate',
         value: newRecord.heartRate,
         timestamp: new Date(),
         status: 'normal'
-      }]);
+      });
     }
+     if (newRecord.bloodSugar) {
+      newRecords.push({
+        id: `bs-${Date.now()}`,
+        type: 'blood_sugar',
+        value: newRecord.bloodSugar,
+        timestamp: new Date(),
+        status: 'normal'
+      });
+    }
+    setRecords(prev => [...prev, ...newRecords]);
     setNewRecord({ bloodPressure: '', heartRate: '', bloodSugar: '', weight: '' });
     setIsLogging(false);
   };
+
+  const getLatestRecord = (type: HealthRecord['type']) => {
+    return records.filter(r => r.type === type).sort((a,b) => b.timestamp.getTime() - a.timestamp.getTime())[0];
+  }
+
+  const latestBloodPressure = getLatestRecord('blood_pressure');
+  const latestHeartRate = getLatestRecord('heart_rate');
+  const latestBloodSugar = getLatestRecord('blood_sugar');
+
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -105,20 +105,7 @@ export function HealthScreen({ onNavigate, user }: HealthScreenProps) {
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto p-6 space-y-6">
-          {/* Health Score Card */}
-          <Card className="p-8 bg-gradient-to-br from-green-500 to-emerald-600 text-white border-0 shadow-xl">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-lg opacity-90 mb-2">Your Health Score</p>
-                <h3 className="text-6xl mb-2">{healthScore}%</h3>
-                <p className="text-lg opacity-90">Excellent condition! Keep it up!</p>
-              </div>
-              <div className="w-32 h-32 bg-white/20 rounded-full flex items-center justify-center">
-                <Activity className="w-16 h-16" />
-              </div>
-            </div>
-          </Card>
-
+          
           {/* Quick Actions */}
           <div className="grid md:grid-cols-2 gap-4">
             <Dialog open={isLogging} onOpenChange={setIsLogging}>
@@ -198,8 +185,10 @@ export function HealthScreen({ onNavigate, user }: HealthScreenProps) {
           <div className="space-y-4">
             <h3 className="text-2xl text-gray-900">Today's Vitals</h3>
             
+            {records.length === 0 ? <Card className='p-6 text-center text-gray-500 bg-white'>No vitals logged yet.</Card> : (
             <div className="grid md:grid-cols-2 gap-4">
               {/* Blood Pressure */}
+              { latestBloodPressure && (
               <Card className="p-6 bg-white shadow-md">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
@@ -208,15 +197,17 @@ export function HealthScreen({ onNavigate, user }: HealthScreenProps) {
                     </div>
                     <div>
                       <p className="text-base text-gray-600 mb-1">Blood Pressure</p>
-                      <p className="text-3xl text-gray-900 mb-1">120/80</p>
+                      <p className="text-3xl text-gray-900 mb-1">{latestBloodPressure.value}</p>
                       <p className="text-sm text-gray-500">mmHg</p>
                     </div>
                   </div>
-                  <Badge className="bg-green-100 text-green-700 border-0">Normal</Badge>
+                  <Badge className="bg-green-100 text-green-700 border-0">{latestBloodPressure.status}</Badge>
                 </div>
               </Card>
+              )}
 
               {/* Heart Rate */}
+              { latestHeartRate && (
               <Card className="p-6 bg-white shadow-md">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
@@ -225,15 +216,17 @@ export function HealthScreen({ onNavigate, user }: HealthScreenProps) {
                     </div>
                     <div>
                       <p className="text-base text-gray-600 mb-1">Heart Rate</p>
-                      <p className="text-3xl text-gray-900 mb-1">72</p>
+                      <p className="text-3xl text-gray-900 mb-1">{latestHeartRate.value}</p>
                       <p className="text-sm text-gray-500">BPM</p>
                     </div>
                   </div>
-                  <Badge className="bg-green-100 text-green-700 border-0">Normal</Badge>
+                  <Badge className="bg-green-100 text-green-700 border-0">{latestHeartRate.status}</Badge>
                 </div>
               </Card>
+              )}
 
               {/* Blood Sugar */}
+              { latestBloodSugar && (
               <Card className="p-6 bg-white shadow-md">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
@@ -242,63 +235,18 @@ export function HealthScreen({ onNavigate, user }: HealthScreenProps) {
                     </div>
                     <div>
                       <p className="text-base text-gray-600 mb-1">Blood Sugar</p>
-                      <p className="text-3xl text-gray-900 mb-1">95</p>
+                      <p className="text-3xl text-gray-900 mb-1">{latestBloodSugar.value}</p>
                       <p className="text-sm text-gray-500">mg/dL</p>
                     </div>
                   </div>
-                  <Badge className="bg-green-100 text-green-700 border-0">Normal</Badge>
+                  <Badge className="bg-green-100 text-green-700 border-0">{latestBloodSugar.status}</Badge>
                 </div>
               </Card>
-
-              {/* Oxygen Level */}
-              <Card className="p-6 bg-white shadow-md">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-4">
-                    <div className="w-14 h-14 bg-cyan-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                      <Wind className="w-7 h-7 text-cyan-600" />
-                    </div>
-                    <div>
-                      <p className="text-base text-gray-600 mb-1">Oxygen Level</p>
-                      <p className="text-3xl text-gray-900 mb-1">98</p>
-                      <p className="text-sm text-gray-500">SpO2 %</p>
-                    </div>
-                  </div>
-                  <Badge className="bg-green-100 text-green-700 border-0">Normal</Badge>
-                </div>
-              </Card>
+              )}
             </div>
+            )}
           </div>
 
-          {/* Weekly Trend */}
-          <Card className="p-6 bg-white shadow-md">
-            <div className="flex items-center gap-3 mb-6">
-              <TrendingUp className="w-6 h-6 text-green-600" />
-              <h3 className="text-xl text-gray-900">7-Day Trend</h3>
-            </div>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-green-50 rounded-xl">
-                <span className="text-base text-gray-700">Blood Pressure</span>
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-green-600" />
-                  <span className="text-base text-green-700">Stable</span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-4 bg-green-50 rounded-xl">
-                <span className="text-base text-gray-700">Heart Rate</span>
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-green-600" />
-                  <span className="text-base text-green-700">Improving</span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-4 bg-green-50 rounded-xl">
-                <span className="text-base text-gray-700">Blood Sugar</span>
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-green-600" />
-                  <span className="text-base text-green-700">Stable</span>
-                </div>
-              </div>
-            </div>
-          </Card>
 
           {/* Health Tips */}
           <Card className="p-6 bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
@@ -306,11 +254,7 @@ export function HealthScreen({ onNavigate, user }: HealthScreenProps) {
             <ul className="space-y-3 text-base text-gray-700">
               <li className="flex gap-3">
                 <span className="text-green-600">✓</span>
-                <span>Your vitals are looking great! Keep up the good work</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="text-green-600">✓</span>
-                <span>Remember to take your evening medication at 6:00 PM</span>
+                <span>Remember to take any prescribed medication on time.</span>
               </li>
               <li className="flex gap-3">
                 <span className="text-green-600">✓</span>
@@ -318,26 +262,9 @@ export function HealthScreen({ onNavigate, user }: HealthScreenProps) {
               </li>
               <li className="flex gap-3">
                 <span className="text-green-600">✓</span>
-                <span>Consider a short 15-minute walk after lunch</span>
+                <span>Consider a short 15-minute walk if you are feeling up to it.</span>
               </li>
             </ul>
-          </Card>
-
-          {/* Doctor's Note */}
-          <Card className="p-6 bg-amber-50 border-amber-200">
-            <div className="flex items-start gap-4">
-              <ImageWithFallback
-                src="https://images.unsplash.com/photo-1666886573452-9dc8ce8f5cc5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoZWFsdGhjYXJlJTIwbWVkaWNhbHxlbnwxfHx8fDE3NjM4NjU1MzN8MA&ixlib=rb-4.1.0&q=80&w=1080"
-                alt="Healthcare"
-                className="w-16 h-16 rounded-full object-cover flex-shrink-0"
-              />
-              <div>
-                <h4 className="text-lg text-gray-900 mb-2">Note from Dr. Smith</h4>
-                <p className="text-base text-gray-700">
-                  "Your recent checkup results are excellent. Continue monitoring your blood pressure daily and maintain your current medication schedule. See you at your next appointment on November 25th."
-                </p>
-              </div>
-            </div>
           </Card>
         </div>
       </div>

@@ -1,3 +1,4 @@
+'use client';
 import { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Mic, Send, Heart, Activity, Users, Calendar, Pill, AlertCircle, Phone } from 'lucide-react';
 import { Button } from './ui/button';
@@ -26,22 +27,7 @@ interface QuickOption {
 }
 
 export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      text: `Hello ${user.displayName}! I'm MITRAM, your caring companion. How can I help you today?`,
-      sender: 'mitram',
-      timestamp: new Date(),
-      options: [
-        { icon: Pill, label: 'Medicine Reminders', action: 'medicine' },
-        { icon: Calendar, label: 'Appointments', action: 'appointments' },
-        { icon: Activity, label: 'Health Check', action: 'health' },
-        { icon: Users, label: 'Contact Family', action: 'family' },
-        { icon: AlertCircle, label: 'Emergency Help', action: 'emergency' },
-        { icon: Phone, label: 'Call Someone', action: 'call' }
-      ]
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -54,13 +40,37 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    if (messages.length === 0) {
+      setIsTyping(true);
+      setTimeout(() => {
+        const welcomeMessage: Message = {
+          id: 1,
+          text: `Hello ${user.displayName}! I'm MITRAM, your caring companion. How can I help you today?`,
+          sender: 'mitram',
+          timestamp: new Date(),
+          options: [
+            { icon: Pill, label: 'Medicine Reminders', action: 'medicine' },
+            { icon: Calendar, label: 'Appointments', action: 'appointments' },
+            { icon: Activity, label: 'Health Check', action: 'health' },
+            { icon: Users, label: 'Contact Family', action: 'family' },
+            { icon: AlertCircle, label: 'Emergency Help', action: 'emergency' },
+            { icon: Phone, label: 'Call Someone', action: 'call' }
+          ]
+        };
+        setMessages([welcomeMessage]);
+        setIsTyping(false);
+      }, 1000);
+    }
+  }, [messages.length, user.displayName]);
+
   const handleSend = (text?: string) => {
     const messageText = text || inputValue;
     if (!messageText.trim()) return;
 
     // Add user message
     const userMessage: Message = {
-      id: messages.length + 1,
+      id: Date.now(),
       text: messageText,
       sender: 'user',
       timestamp: new Date()
@@ -74,7 +84,7 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
     setTimeout(() => {
       const response = generateResponse(messageText.toLowerCase());
       const mitramResponse: Message = {
-        id: messages.length + 2,
+        id: Date.now() + 1,
         text: response.text,
         sender: 'mitram',
         timestamp: new Date(),
@@ -90,11 +100,10 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
     // Medicine related
     if (input.includes('medicine') || input.includes('pill') || input.includes('medication')) {
       return {
-        text: "I can help you manage your medicines! You have 3 medicines scheduled for today. Would you like to see your medicine schedule or set a new reminder?",
+        text: "I can help you manage your medicines! Would you like to see your medicine schedule or set a new reminder?",
         options: [
           { icon: Pill, label: 'View Schedule', action: 'view_medicine' },
           { icon: Calendar, label: 'Add Reminder', action: 'add_medicine' },
-          { icon: AlertCircle, label: 'Mark as Taken', action: 'mark_taken' }
         ]
       };
     }
@@ -102,10 +111,9 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
     // Appointment related
     if (input.includes('appointment') || input.includes('doctor') || input.includes('visit')) {
       return {
-        text: "You have a doctor's appointment scheduled with Dr. Smith on November 25th at 4:30 PM. Would you like me to remind you or reschedule?",
+        text: "I can help with appointments. Would you like me to remind you or reschedule?",
         options: [
           { icon: Calendar, label: 'View Appointments', action: 'view_appointments' },
-          { icon: Phone, label: 'Call Doctor', action: 'call_doctor' },
           { icon: AlertCircle, label: 'Set Reminder', action: 'reminder' }
         ]
       };
@@ -114,11 +122,10 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
     // Health related
     if (input.includes('health') || input.includes('feeling') || input.includes('wellness')) {
       return {
-        text: "I'd love to help with your health! Your current health score is 98%. Would you like to log today's vitals or review your health trends?",
+        text: "I'd love to help with your health! Would you like to log today's vitals or review your health trends?",
         options: [
           { icon: Activity, label: 'Log Vitals', action: 'log_vitals' },
-          { icon: Heart, label: 'Health Report', action: 'health_report' },
-          { icon: Calendar, label: 'Wellness Tips', action: 'wellness' }
+          { icon: Heart, label: 'Health Report', action: 'health_report' }
         ]
       };
     }
@@ -126,7 +133,7 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
     // Family related
     if (input.includes('family') || input.includes('call') || input.includes('contact')) {
       return {
-        text: "You have 5 new messages from your family! Sarah and John sent you messages today. Would you like to read them or make a video call?",
+        text: "Connecting with family is important. Would you like to read messages or make a video call?",
         options: [
           { icon: Users, label: 'Read Messages', action: 'read_messages' },
           { icon: Phone, label: 'Video Call', action: 'video_call' },

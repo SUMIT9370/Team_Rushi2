@@ -1,11 +1,12 @@
-import { MessageCircle, Bell, Heart, AlertCircle, Users, Settings, Mic, Activity } from 'lucide-react';
+'use client';
+import { MessageCircle, Bell, AlertCircle, Users, Settings, Mic } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { Screen } from '../app/page';
 import { ImageWithFallback } from './ImageWithFallback';
 import type { User } from '@/firebase/auth/use-user';
-
+import { useCollection, useFirestore, useUser } from '@/firebase';
 
 interface HomeScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -13,6 +14,8 @@ interface HomeScreenProps {
 }
 
 export function HomeScreen({ onNavigate, user }: HomeScreenProps) {
+  const {data: contacts} = useCollection(user ? `users/${user.uid}/emergencyContacts` : '');
+
   const currentHour = new Date().getHours();
   const greeting = currentHour < 12 ? 'Good Morning' : currentHour < 17 ? 'Good Afternoon' : 'Good Evening';
   const currentDate = new Date().toLocaleDateString('en-US', { 
@@ -30,7 +33,7 @@ export function HomeScreen({ onNavigate, user }: HomeScreenProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-cyan-500 rounded-full flex items-center justify-center shadow-lg">
-                <Heart className="w-8 h-8 text-white" />
+                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-heart-pulse"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></svg>
               </div>
               <div>
                 <h1 className="text-2xl text-gray-900">MITRAM</h1>
@@ -82,13 +85,13 @@ export function HomeScreen({ onNavigate, user }: HomeScreenProps) {
         </Card>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <Card className="p-6 border-0 shadow-md hover:shadow-lg transition-shadow bg-white">
             <div className="flex flex-col items-center text-center space-y-2">
               <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center">
                 <Bell className="w-7 h-7 text-blue-600" />
               </div>
-              <p className="text-3xl text-gray-900">3</p>
+              <p className="text-3xl text-gray-900">0</p>
               <p className="text-sm text-gray-600">Pending Reminders</p>
             </div>
           </Card>
@@ -98,7 +101,7 @@ export function HomeScreen({ onNavigate, user }: HomeScreenProps) {
               <div className="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center">
                 <Users className="w-7 h-7 text-purple-600" />
               </div>
-              <p className="text-3xl text-gray-900">5</p>
+              <p className="text-3xl text-gray-900">0</p>
               <p className="text-sm text-gray-600">New Messages</p>
             </div>
           </Card>
@@ -108,7 +111,7 @@ export function HomeScreen({ onNavigate, user }: HomeScreenProps) {
               <div className="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center">
                 <AlertCircle className="w-7 h-7 text-red-600" />
               </div>
-              <p className="text-3xl text-gray-900">3</p>
+              <p className="text-3xl text-gray-900">{contacts?.length || 0}</p>
               <p className="text-sm text-gray-600">Emergency Contacts</p>
             </div>
           </Card>
@@ -148,9 +151,6 @@ export function HomeScreen({ onNavigate, user }: HomeScreenProps) {
                 <h3 className="text-2xl mb-2">My Reminders</h3>
                 <p className="text-base opacity-90">Manage medicines & appointments</p>
               </div>
-              <Badge className="bg-white/20 text-white border-0">
-                3 Pending
-              </Badge>
             </div>
           </Card>
 
@@ -186,9 +186,6 @@ export function HomeScreen({ onNavigate, user }: HomeScreenProps) {
                 <h3 className="text-2xl mb-2">Family Connect</h3>
                 <p className="text-base opacity-90">Stay connected with loved ones</p>
               </div>
-              <Badge className="bg-white/20 text-white border-0">
-                5 New Messages
-              </Badge>
             </div>
           </Card>
 
@@ -205,9 +202,6 @@ export function HomeScreen({ onNavigate, user }: HomeScreenProps) {
                 <h3 className="text-2xl mb-2">Settings</h3>
                 <p className="text-base opacity-90">Customize your experience</p>
               </div>
-              <Badge className="bg-white/20 text-white border-0">
-                Personalize
-              </Badge>
             </div>
           </Card>
         </div>
