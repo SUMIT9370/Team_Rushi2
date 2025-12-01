@@ -1,6 +1,6 @@
 
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   ArrowLeft,
   Volume2,
@@ -12,6 +12,7 @@ import {
   Bell,
   LogOut,
   Edit,
+  Upload,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -30,6 +31,9 @@ import { useUser, type User, useFirestore } from "@/firebase";
 import { signOut } from "@/firebase/auth/signout";
 import { doc, updateDoc } from "firebase/firestore";
 import { updateProfile } from "firebase/auth";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { useToast } from "@/hooks/use-toast";
+
 
 interface SettingsScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -38,6 +42,9 @@ interface SettingsScreenProps {
 
 export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
   const firestore = useFirestore();
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [settings, setSettings] = useState({
     highContrast: false,
     medicineReminders: true,
@@ -51,6 +58,7 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
   const [profileData, setProfileData] = useState({
     displayName: user.displayName || "",
   });
+  const [uploading, setUploading] = useState(false);
 
   const handleLogout = async () => {
     if (confirm("Are you sure you want to logout?")) {
@@ -68,8 +76,47 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
       });
       await updateProfile(user, { displayName: profileData.displayName });
       setIsEditingProfile(false);
+       toast({
+        title: "Profile Updated",
+        description: "Your display name has been updated.",
+      });
     }
   };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    setUploading(true);
+    const storage = getStorage();
+    const storageRef = ref(storage, `avatars/${user.uid}/${file.name}`);
+
+    try {
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+
+      // Update user profile in Auth and Firestore
+      await updateProfile(user, { photoURL: downloadURL });
+      const userDocRef = doc(firestore, "users", user.uid);
+      await updateDoc(userDocRef, { photoURL: downloadURL });
+      
+      toast({
+        title: "Avatar Updated",
+        description: "Your profile picture has been changed.",
+      });
+
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      toast({
+        variant: "destructive",
+        title: "Upload Failed",
+        description: "There was an error uploading your new avatar.",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -98,11 +145,28 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
           {/* Profile Section */}
           <Card className="p-6 bg-white shadow-md">
             <div className="flex items-center gap-6">
-              <ImageWithFallback
-                src={user.photoURL || undefined}
-                alt={user.displayName || "user"}
-                className="w-24 h-24 rounded-full object-cover border-4 border-indigo-200"
-              />
+               <div className="relative">
+                <ImageWithFallback
+                  src={user.photoURL || undefined}
+                  alt={user.displayName || "user"}
+                  className="w-24 h-24 rounded-full object-cover border-4 border-indigo-200"
+                />
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                  accept="image/*"
+                />
+                <Button
+                  size="icon"
+                  className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-indigo-600 hover:bg-indigo-700"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  <Upload className="h-4 w-4" />
+                </Button>
+              </div>
               <div className="flex-1">
                 <h3 className="text-2xl text-gray-900 mb-1">
                   {user.displayName}

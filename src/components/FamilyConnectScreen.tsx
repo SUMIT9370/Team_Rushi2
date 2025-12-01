@@ -1,9 +1,9 @@
+
 'use client';
 import { useState } from 'react';
-import { ArrowLeft, Video, Heart, Send, MessageCircle, Phone, Plus, Trash2, Users } from 'lucide-react';
+import { ArrowLeft, Phone, MessageCircle, Plus, Trash2, Users } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
-import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Screen } from '../app/page';
@@ -44,7 +44,14 @@ export function FamilyConnectScreen({ onNavigate, user }: FamilyConnectScreenPro
 
   const handleAddMember = async () => {
     if (familyMembersQuery && newMember.name && newMember.relation && newMember.phone) {
-      await addDoc(familyMembersQuery, newMember);
+       // For now, we are not implementing image uploads for family members.
+      // We will use a placeholder.
+      const avatarUrl = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400';
+
+      await addDoc(familyMembersQuery, {
+        ...newMember,
+        avatar: avatarUrl
+      });
       setNewMember({ name: '', relation: '', phone: '', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400' });
       setIsAdding(false);
     }
@@ -70,7 +77,7 @@ export function FamilyConnectScreen({ onNavigate, user }: FamilyConnectScreenPro
               <ArrowLeft className="w-6 h-6" />
             </Button>
             <div className="flex items-center gap-3 flex-1">
-              <Heart className="w-8 h-8" />
+              <Users className="w-8 h-8" />
               <h2 className="text-2xl">Family Connect</h2>
             </div>
           </div>

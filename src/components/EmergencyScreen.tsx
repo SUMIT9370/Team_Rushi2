@@ -1,5 +1,6 @@
+
 'use client';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { ArrowLeft, AlertCircle, Phone, MapPin, Plus, Trash2, CheckCircle, X, Edit } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
@@ -32,8 +33,9 @@ export function EmergencyScreen({ onNavigate }: EmergencyScreenProps) {
     name: '',
     relation: '',
     phone: '',
-    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400'
+    avatar: '' // Will be set on upload
   });
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
   const handleEmergencyCall = () => {
     setEmergencyActivated(true);
@@ -42,12 +44,16 @@ export function EmergencyScreen({ onNavigate }: EmergencyScreenProps) {
 
   const handleAddContact = async () => {
     if (user && db && newContact.name && newContact.phone) {
+      // For now, we are not implementing image uploads for contacts.
+      // We will use a placeholder.
+      const avatarUrl = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400';
       const contactsCollection = collection(db, `users/${user.uid}/emergencyContacts`);
       await addDoc(contactsCollection, {
         ...newContact,
+        avatar: avatarUrl,
         isPrimary: false,
       });
-      setNewContact({ name: '', relation: '', phone: '', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400' });
+      setNewContact({ name: '', relation: '', phone: '', avatar: '' });
       setIsAddingContact(false);
     }
   };
