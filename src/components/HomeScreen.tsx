@@ -6,7 +6,8 @@ import { Badge } from './ui/badge';
 import { Screen } from '../app/page';
 import { ImageWithFallback } from './ImageWithFallback';
 import type { User } from '@/firebase/auth/use-user';
-import { useCollection, useFirestore, useUser } from '@/firebase';
+import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
 
 interface HomeScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -14,7 +15,14 @@ interface HomeScreenProps {
 }
 
 export function HomeScreen({ onNavigate, user }: HomeScreenProps) {
-  const {data: contacts} = useCollection(user ? `users/${user.uid}/emergencyContacts` : '');
+  const firestore = useFirestore();
+
+  const contactsQuery = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return collection(firestore, 'users', user.uid, 'emergencyContacts');
+  }, [firestore, user]);
+
+  const {data: contacts} = useCollection(contactsQuery);
 
   const currentHour = new Date().getHours();
   const greeting = currentHour < 12 ? 'Good Morning' : currentHour < 17 ? 'Good Afternoon' : 'Good Evening';
