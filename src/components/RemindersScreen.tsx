@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Pill, Calendar, Droplet, Plus, Check, Clock, Trash2, Bell } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
@@ -11,8 +11,7 @@ import type { User } from '@/firebase/auth/use-user';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, deleteDoc, doc, updateDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { sendReminderEmail } from '@/lib/email';
-
+import { formatDistanceToNow, parse } from 'date-fns';
 
 interface RemindersScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -23,12 +22,31 @@ interface Reminder {
   id: string;
   type: 'medicine' | 'doctor' | 'water' | 'other';
   title: string;
-  time: string;
+  time: string; // Stored as "HH:mm"
   description?: string;
   completed: boolean;
   notified: boolean;
   emoji: string;
 }
+
+// Function to calculate time until reminder
+const getTimeUntil = (reminderTime: string) => {
+    const now = new Date();
+    const [hours, minutes] = reminderTime.split(':').map(Number);
+    const reminderDate = new Date();
+    reminderDate.setHours(hours, minutes, 0, 0);
+
+    // If reminder time is in the past for today, assume it's for the next day
+    if (reminderDate < now) {
+        // We handle this by showing "Overdue" or "Due now" instead of a future time
+        const diff = now.getTime() - reminderDate.getTime();
+        if (diff < 60000) return 'Due now'; // Less than a minute past
+        return `${formatDistanceToNow(reminderDate)} ago`;
+    }
+
+    return `in ${formatDistanceToNow(reminderDate)}`;
+};
+
 
 export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
   const db = useFirestore();
@@ -48,36 +66,31 @@ export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
     description: '',
     type: 'other' as const
   });
+  const [now, setNow] = useState(new Date());
 
   // Reminder clock effect
   useEffect(() => {
     const interval = setInterval(() => {
-      const now = new Date();
-      const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
+      setNow(new Date());
       reminders?.forEach(async (reminder) => {
-        if (reminder.time === currentTime && !reminder.completed && !reminder.notified) {
-          
-          // Trigger toast notification
+        const [hours, minutes] = reminder.time.split(':').map(Number);
+        const currentHours = new Date().getHours();
+        const currentMinutes = new Date().getMinutes();
+
+        if (hours === currentHours && minutes === currentMinutes && !reminder.completed && !reminder.notified) {
           toast({
             title: `🔔 Reminder: ${reminder.title}`,
             description: reminder.description || `It's time for your reminder at ${reminder.time}.`,
-            duration: 10000,
+            duration: 20000, // Keep toast on screen for longer
           });
-
-          // Trigger email
-          if (user.email) {
-            sendReminderEmail(user.email, reminder.title, reminder.description || `This is a reminder for ${reminder.title} at ${reminder.time}.`);
-          }
           
-          // Mark as notified to prevent re-triggering
           if(db && user) {
             const reminderDoc = doc(db, 'users', user.uid, 'reminders', reminder.id);
             await updateDoc(reminderDoc, { notified: true });
           }
         }
       });
-    }, 10000); // Check every 10 seconds
+    }, 1000); // Check every second for countdown update
 
     return () => clearInterval(interval);
   }, [reminders, user, db, toast]);
@@ -278,9 +291,9 @@ export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
                   </div>
                   
                   <div className="flex flex-col items-end gap-2 text-right">
-                    <Badge variant="secondary" className="text-sm">
+                    <Badge variant={reminder.completed ? "secondary" : "default"} className={`text-sm ${reminder.completed ? "" : "bg-primary/80"}`}>
                       <Clock className="w-3 h-3 mr-1.5" />
-                      {reminder.time}
+                      {!reminder.completed ? getTimeUntil(reminder.time) : "Completed"}
                     </Badge>
                      <div className="flex items-center gap-1">
                         <Button
