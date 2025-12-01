@@ -140,6 +140,33 @@
         "completed",
         "emoji"
       ]
+    },
+    "HealthRecord": {
+      "title": "Health Record",
+      "type": "object",
+      "description": "A single health vital measurement for a user.",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [ "blood_pressure", "heart_rate", "blood_sugar", "oxygen_level"],
+          "description": "The type of health metric."
+        },
+        "value": {
+          "type": "string",
+          "description": "The value of the measurement (e.g., '120/80' for blood pressure)."
+        },
+        "status": {
+            "type": "string",
+            "enum": ["normal", "warning", "critical"],
+            "description": "The status of the reading."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp of when the record was taken."
+        }
+      },
+      "required": ["type", "value", "status", "timestamp"]
     }
   },
   "auth": {
@@ -189,9 +216,17 @@
           },
           "description": "Stores reminders for a specific user."
         }
+      },
+      {
+        "path": "/users/{userId}/healthRecords/{recordId}",
+        "definition": {
+          "entityName": "HealthRecord",
+          "schema": {
+            "$ref": "#/entities/HealthRecord"
+          },
+          "description": "Stores health vitals for a specific user."
+        }
       }
     ]
   }
 }
-
-    

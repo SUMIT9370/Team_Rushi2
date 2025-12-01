@@ -1,95 +1,33 @@
 
-/**
- * This ruleset establishes a security model based on user ownership.
- *
- * Core Philosophy:
- * The security model is built on the principle of least privilege. Users have
- * strict control over their own data and cannot see or modify anyone else's.
- *
- * Data Structure:
- * - /users/{userId}: This collection stores the primary data for each user.
- *   Access is strictly controlled by matching the authenticated user's ID
- *   with the {userId} in the document path.
- * - /users/{userId}/emergencyContacts/{contactId}: This subcollection stores
- *   emergency contacts for a user. Access is inherited from the parent user
- *   document, ensuring only the user can manage their contacts.
- * - /users/{userId}/familyMembers/{memberId}: This subcollection stores
- *   family members. Access is inherited from the parent user document.
- *
- * Key Security Decisions:
- * - User Data Privacy: Users can only create, read, update, or delete their
- *   own user document and subcollections. They cannot view other users' data.
- * - Secure Data Creation: Rules enforce that the `id` field of a new user
- *   document matches the auth `uid`, preventing identity spoofing.
- * - Immutable User ID: The user ID field cannot be changed after creation.
- * - Default Deny: Any operation not explicitly permitted is denied.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions to abstract and simplify rule logic.
-
-    /**
-     * Checks if a user is authenticated.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * Validates if the requesting user is the owner of the document.
-     * Compares the user's UID with the document's ID from the path.
-     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
-
-    /**
-     * Validates that the 'id' field within a new User document matches the
-     * document's ID in the path. This enforces relational integrity on creation.
-     */
-    function isCreatingOwnUserData(userId) {
-      return isOwner(userId) && request.resource.data.id == userId;
-    }
-
-    /**
-     * Validates that the 'id' field is not being changed during an update.
-     * The user ID should be immutable.
-     */
-    function hasImmutableUserId() {
-      return request.resource.data.id == resource.data.id;
-    }
-
-    /**
-     * @description Manages user profile data. Access is restricted to the document owner.
-     * @path /users/{userId}
-     */
+    
     match /users/{userId} {
       allow read, update, delete: if isOwner(userId);
-      allow create: if isCreatingOwnUserData(userId);
-
-      /**
-       * @description Manages emergency contacts for a user. Access is inherited from the user.
-       * @path /users/{userId}/emergencyContacts/{contactId}
-       */
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      
       match /emergencyContacts/{contactId} {
         allow read, write: if isOwner(userId);
       }
       
-      /**
-       * @description Manages family members for a user. Access is inherited from the user.
-       * @path /users/{userId}/familyMembers/{memberId}
-       */
       match /familyMembers/{memberId} {
         allow read, write: if isOwner(userId);
       }
       
-      /**
-       * @description Manages reminders for a user. Access is inherited from the user.
-       * @path /users/{userId}/reminders/{reminderId}
-       */
       match /reminders/{reminderId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      match /healthRecords/{recordId} {
         allow read, write: if isOwner(userId);
       }
     }
