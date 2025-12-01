@@ -32,6 +32,11 @@ const motivationalQuotes = [
   },
 ];
 
+interface HomeScreenProps {
+    onNavigate: (screen: Screen) => void;
+    user: User;
+    userData: UserData;
+}
 
 export function HomeScreen({ onNavigate, user, userData }: HomeScreenProps) {
   const [quote, setQuote] = useState(motivationalQuotes[0]);

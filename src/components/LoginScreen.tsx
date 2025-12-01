@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { CardTitle, CardDescription } from './ui/card';
 import { signUpWithEmail } from '@/firebase/auth/signup';
 import { signInWithEmail } from '@/firebase/auth/signin';
 import { useToast } from '@/hooks/use-toast';
