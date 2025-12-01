@@ -1,6 +1,13 @@
 'use client';
-import { useState } from 'react';
-import { ArrowLeft, Phone, MessageCircle, Plus, Trash2, Users } from 'lucide-react';
+import { useState, useRef } from 'react';
+import {
+  ArrowLeft,
+  Phone,
+  MessageCircle,
+  Plus,
+  Trash2,
+  Users,
+} from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Input } from './ui/input';
@@ -74,20 +81,23 @@ export function FamilyConnectScreen({
       newMember.phone
     ) {
       let avatarUrl = 'https://picsum.photos/seed/defaultavatar/200/200'; // Default placeholder
-      
+
       if (avatarFile) {
         setIsUploading(true);
         const storage = getStorage();
-        const storageRef = ref(storage, `avatars/family/${user.uid}/${Date.now()}_${avatarFile.name}`);
+        const storageRef = ref(
+          storage,
+          `avatars/family/${user.uid}/${Date.now()}_${avatarFile.name}`
+        );
         try {
           const snapshot = await uploadBytes(storageRef, avatarFile);
           avatarUrl = await getDownloadURL(snapshot.ref);
         } catch (error) {
-          console.error("Error uploading avatar:", error);
+          console.error('Error uploading avatar:', error);
           toast({
-            variant: "destructive",
-            title: "Upload Failed",
-            description: "Could not upload the avatar image.",
+            variant: 'destructive',
+            title: 'Upload Failed',
+            description: 'Could not upload the avatar image.',
           });
           setIsUploading(false);
           return;
@@ -195,7 +205,9 @@ export function FamilyConnectScreen({
                       <Input
                         type="file"
                         accept="image/*"
-                        onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
+                        onChange={(e) =>
+                          setAvatarFile(e.target.files?.[0] || null)
+                        }
                         className="h-12 text-lg"
                       />
                     </div>
@@ -210,7 +222,7 @@ export function FamilyConnectScreen({
                         }
                         className="flex-1 h-12 bg-green-600 hover:bg-green-700"
                       >
-                        {isUploading ? "Uploading..." : "Add Member"}
+                        {isUploading ? 'Uploading...' : 'Add Member'}
                       </Button>
                       <Button
                         onClick={() => setIsAdding(false)}
@@ -253,7 +265,9 @@ export function FamilyConnectScreen({
                         className="w-20 h-20 rounded-full object-cover flex-shrink-0"
                       />
                       <div className="flex-1">
-                        <h4 className="text-xl text-gray-900">{member.name}</h4>
+                        <h4 className="text-xl text-gray-900">
+                          {member.name}
+                        </h4>
                         <p className="text-base text-gray-600">
                           {member.relation}
                         </p>
