@@ -8,7 +8,7 @@ import { Input } from './ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Screen } from '../app/page';
 import type { User } from '@/firebase/auth/use-user';
-import { useUser, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, deleteDoc, doc, updateDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { sendReminderEmail } from '@/lib/email';
@@ -77,7 +77,7 @@ export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
           }
         }
       });
-    }, 1000); // Check every second
+    }, 10000); // Check every 10 seconds
 
     return () => clearInterval(interval);
   }, [reminders, user, db, toast]);
