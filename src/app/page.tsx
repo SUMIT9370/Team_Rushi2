@@ -10,6 +10,7 @@ import { HealthScreen } from "@/components/HealthScreen";
 import { useState } from "react";
 import { useUser, useUserData } from "@/firebase";
 import { Toaster } from "@/components/ui/toaster";
+import { Loader2 } from "lucide-react";
 
 
 export type Screen =
@@ -39,8 +40,8 @@ export default function App() {
   const renderScreen = () => {
     if (isUserLoading || isUserDataLoading) {
       return (
-        <div className="flex items-center justify-center min-h-screen">
-          Loading...
+        <div className="flex items-center justify-center min-h-screen bg-background">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
         </div>
       );
     }
@@ -80,5 +81,5 @@ export default function App() {
     }
   };
 
-  return <div className="min-h-screen bg-slate-50">{renderScreen()}<Toaster /></div>;
+  return <div className="min-h-screen bg-background">{renderScreen()}<Toaster /></div>;
 }
