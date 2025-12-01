@@ -80,6 +80,10 @@
           "type": "string",
           "description": "The family member's relation to the user."
         },
+        "phone": {
+          "type": "string",
+          "description": "The family member's phone number."
+        },
         "avatar": {
           "type": "string",
           "description": "URL for the family member's avatar image.",
@@ -88,7 +92,8 @@
       },
       "required": [
         "name",
-        "relation"
+        "relation",
+        "phone"
       ]
     },
     "Reminder": {

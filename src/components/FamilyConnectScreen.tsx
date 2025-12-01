@@ -17,6 +17,7 @@ interface FamilyMember {
   name: string;
   relation: string;
   avatar: string;
+  phone: string;
 }
 
 interface FamilyConnectScreenProps {
@@ -37,13 +38,14 @@ export function FamilyConnectScreen({ onNavigate, user }: FamilyConnectScreenPro
   const [newMember, setNewMember] = useState({
     name: '',
     relation: '',
+    phone: '',
     avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400',
   });
 
   const handleAddMember = async () => {
-    if (familyMembersQuery && newMember.name && newMember.relation) {
+    if (familyMembersQuery && newMember.name && newMember.relation && newMember.phone) {
       await addDoc(familyMembersQuery, newMember);
-      setNewMember({ name: '', relation: '', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400' });
+      setNewMember({ name: '', relation: '', phone: '', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400' });
       setIsAdding(false);
     }
   };
@@ -111,10 +113,19 @@ export function FamilyConnectScreen({ onNavigate, user }: FamilyConnectScreenPro
                         className="h-12 text-lg"
                       />
                     </div>
+                     <div className="space-y-2">
+                      <label className="text-base">Phone Number</label>
+                      <Input
+                        placeholder="Enter phone number"
+                        value={newMember.phone}
+                        onChange={(e) => setNewMember({ ...newMember, phone: e.target.value })}
+                        className="h-12 text-lg"
+                      />
+                    </div>
                      <div className="flex gap-3">
                       <Button
                         onClick={handleAddMember}
-                        disabled={!newMember.name || !newMember.relation}
+                        disabled={!newMember.name || !newMember.relation || !newMember.phone}
                         className="flex-1 h-12 bg-green-600 hover:bg-green-700"
                       >
                         Add Member
@@ -145,34 +156,37 @@ export function FamilyConnectScreen({ onNavigate, user }: FamilyConnectScreenPro
             <div className="grid md:grid-cols-2 gap-4">
               {familyMembers?.map((member) => (
                 <Card key={member.id} className="p-6 bg-white shadow-md hover:shadow-lg transition-shadow">
-                  <div className="flex items-center gap-4">
-                    <ImageWithFallback
-                      src={member.avatar}
-                      alt={member.name}
-                      className="w-20 h-20 rounded-full object-cover flex-shrink-0"
-                    />
-                    <div className="flex-1">
-                      <h4 className="text-xl text-gray-900">{member.name}</h4>
-                      <p className="text-base text-gray-600 mb-4">{member.relation}</p>
-                      <div className="flex gap-2">
-                        <Button className="h-10 bg-blue-500 hover:bg-blue-600 rounded-xl flex-1">
-                          <Phone className="w-4 h-4 mr-2" />
-                          Call
-                        </Button>
-                        <Button variant="outline" className="h-10 rounded-xl flex-1">
-                          <MessageCircle className="w-4 h-4 mr-2" />
-                          Message
-                        </Button>
-                         <Button
-                            onClick={() => handleDeleteMember(member.id)}
-                            variant="outline"
-                            size="icon"
-                            className="h-10 w-10 rounded-xl border-red-200 text-red-600 hover:bg-red-50"
-                            title="Remove"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </Button>
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-4">
+                      <ImageWithFallback
+                        src={member.avatar}
+                        alt={member.name}
+                        className="w-20 h-20 rounded-full object-cover flex-shrink-0"
+                      />
+                      <div className="flex-1">
+                        <h4 className="text-xl text-gray-900">{member.name}</h4>
+                        <p className="text-base text-gray-600">{member.relation}</p>
+                        <p className="text-base text-gray-500">{member.phone}</p>
                       </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button className="h-10 bg-blue-500 hover:bg-blue-600 rounded-xl flex-1">
+                        <Phone className="w-4 h-4 mr-2" />
+                        Call
+                      </Button>
+                      <Button variant="outline" className="h-10 rounded-xl flex-1">
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        Message
+                      </Button>
+                        <Button
+                          onClick={() => handleDeleteMember(member.id)}
+                          variant="outline"
+                          size="icon"
+                          className="h-10 w-10 rounded-xl border-red-200 text-red-600 hover:bg-red-50"
+                          title="Remove"
+                      >
+                          <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
                 </Card>
