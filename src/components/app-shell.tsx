@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/sheet';
 import type { User, UserData } from '@/firebase';
 import { ImageWithFallback } from './ImageWithFallback';
+import { ThemeToggle } from './ThemeToggle';
 
 const navItems = [
   { screen: 'home', label: 'Dashboard', icon: HeartPulse },
@@ -155,21 +156,24 @@ export function AppShell({
               {screenTitles[activeScreen]}
             </h2>
           </div>
-          <div
-            className="flex items-center gap-3 cursor-pointer"
-            onClick={() => onNavigate('settings')}
-          >
-            <div className="text-right hidden sm:block">
-              <p className="font-semibold text-foreground">
-                {userData.displayName}
-              </p>
-              <p className="text-xs text-muted-foreground">{user.email}</p>
+          <div className="flex items-center gap-3">
+             <ThemeToggle />
+            <div
+              className="flex items-center gap-3 cursor-pointer"
+              onClick={() => onNavigate('settings')}
+            >
+                <div className="text-right hidden sm:block">
+                  <p className="font-semibold text-foreground">
+                    {userData.displayName}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{user.email}</p>
+                </div>
+                <ImageWithFallback
+                  src={userData.photoURL}
+                  alt={userData.displayName || 'user avatar'}
+                  className="h-10 w-10 rounded-full border-2 border-primary/40"
+                />
             </div>
-            <ImageWithFallback
-              src={userData.photoURL}
-              alt={userData.displayName || 'user avatar'}
-              className="h-10 w-10 rounded-full border-2 border-primary/40"
-            />
           </div>
         </header>
 

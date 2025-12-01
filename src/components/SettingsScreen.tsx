@@ -223,12 +223,6 @@ export function SettingsScreen({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between p-4 rounded-lg bg-card/60">
-            <Label htmlFor="dark-mode" className="text-base">
-              Dark Mode
-            </Label>
-            <Switch id="dark-mode" />
-          </div>
-          <div className="flex items-center justify-between p-4 rounded-lg bg-card/60">
             <Label htmlFor="high-contrast" className="text-base">
               High Contrast
             </Label>
