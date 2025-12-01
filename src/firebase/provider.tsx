@@ -7,10 +7,10 @@ import {
   type ReactNode,
 } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Auth, getAuth, onAuthStateChanged, User } from 'firebase/auth';
-import { Firestore, getFirestore } from 'firebase/firestore';
-import { app, db } from './config';
-import { doc, getDoc } from 'firebase/firestore';
+import { Auth, onAuthStateChanged, User } from 'firebase/auth';
+import { Firestore } from 'firebase/firestore';
+import { app, db, auth as firebaseAuth } from './config';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 export type FirebaseContextValue = {
   app: FirebaseApp;
@@ -22,11 +22,10 @@ const FirebaseContext = createContext<FirebaseContextValue | null>(null);
 
 export function FirebaseProvider({
   children,
-  value,
 }: {
   children: ReactNode;
-  value: FirebaseContextValue;
 }) {
+  const value = { app, db, auth: firebaseAuth };
   return (
     <FirebaseContext.Provider value={value}>
       {children}
@@ -63,13 +62,21 @@ export const useUser = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const auth = getAuth(app);
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(firebaseAuth, async (user) => {
       if (user) {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
           setUser({ ...user, ...userDoc.data() });
         } else {
+          // Create user profile if it doesn't exist
+          const newUserProfile = {
+            displayName: user.displayName,
+            email: user.email,
+            photoURL: user.photoURL,
+            uid: user.uid,
+          };
+          await setDoc(userDocRef, newUserProfile);
           setUser(user);
         }
       } else {
