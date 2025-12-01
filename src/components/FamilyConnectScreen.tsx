@@ -1,16 +1,34 @@
-
 'use client';
 import { useState } from 'react';
 import { ArrowLeft, Phone, MessageCircle, Plus, Trash2, Users } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Input } from './ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from './ui/dialog';
 import { Screen } from '../app/page';
 import { ImageWithFallback } from './ImageWithFallback';
 import type { User } from '@/firebase/auth/use-user';
-import { useUser, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import {
+  useUser,
+  useCollection,
+  useFirestore,
+  useMemoFirebase,
+} from '@/firebase';
+import {
+  collection,
+  addDoc,
+  deleteDoc,
+  doc,
+  serverTimestamp,
+} from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useToast } from '@/hooks/use-toast';
 
 interface FamilyMember {
   id: string;
@@ -25,41 +43,73 @@ interface FamilyConnectScreenProps {
   user: User;
 }
 
-export function FamilyConnectScreen({ onNavigate, user }: FamilyConnectScreenProps) {
+export function FamilyConnectScreen({
+  onNavigate,
+  user,
+}: FamilyConnectScreenProps) {
   const db = useFirestore();
+  const { toast } = useToast();
   const familyMembersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return collection(db, 'users', user.uid, 'familyMembers');
   }, [db, user]);
 
-  const { data: familyMembers, isLoading } = useCollection<FamilyMember>(familyMembersQuery);
+  const { data: familyMembers, isLoading } =
+    useCollection<FamilyMember>(familyMembersQuery);
 
   const [isAdding, setIsAdding] = useState(false);
   const [newMember, setNewMember] = useState({
     name: '',
     relation: '',
     phone: '',
-    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400',
   });
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleAddMember = async () => {
-    if (familyMembersQuery && newMember.name && newMember.relation && newMember.phone) {
-       // For now, we are not implementing image uploads for family members.
-      // We will use a placeholder.
-      const avatarUrl = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400';
+    if (
+      familyMembersQuery &&
+      newMember.name &&
+      newMember.relation &&
+      newMember.phone
+    ) {
+      let avatarUrl = 'https://picsum.photos/seed/defaultavatar/200/200'; // Default placeholder
+      
+      if (avatarFile) {
+        setIsUploading(true);
+        const storage = getStorage();
+        const storageRef = ref(storage, `avatars/family/${user.uid}/${Date.now()}_${avatarFile.name}`);
+        try {
+          const snapshot = await uploadBytes(storageRef, avatarFile);
+          avatarUrl = await getDownloadURL(snapshot.ref);
+        } catch (error) {
+          console.error("Error uploading avatar:", error);
+          toast({
+            variant: "destructive",
+            title: "Upload Failed",
+            description: "Could not upload the avatar image.",
+          });
+          setIsUploading(false);
+          return;
+        } finally {
+          setIsUploading(false);
+        }
+      }
 
       await addDoc(familyMembersQuery, {
         ...newMember,
-        avatar: avatarUrl
+        avatar: avatarUrl,
+        createdAt: serverTimestamp(),
       });
-      setNewMember({ name: '', relation: '', phone: '', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400' });
+      setNewMember({ name: '', relation: '', phone: '' });
+      setAvatarFile(null);
       setIsAdding(false);
     }
   };
 
   const handleDeleteMember = async (id: string) => {
-    if(db && user) {
-        await deleteDoc(doc(db, 'users', user.uid, 'familyMembers', id));
+    if (db && user) {
+      await deleteDoc(doc(db, 'users', user.uid, 'familyMembers', id));
     }
   };
 
@@ -90,16 +140,18 @@ export function FamilyConnectScreen({ onNavigate, user }: FamilyConnectScreenPro
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-2xl text-gray-900">Your Family Circle</h3>
-               <Dialog open={isAdding} onOpenChange={setIsAdding}>
+              <Dialog open={isAdding} onOpenChange={setIsAdding}>
                 <DialogTrigger asChild>
-                    <Button className="bg-indigo-600 hover:bg-indigo-700 rounded-xl">
-                        <Plus className="w-5 h-5 mr-2" />
-                        Add Member
-                    </Button>
+                  <Button className="bg-indigo-600 hover:bg-indigo-700 rounded-xl">
+                    <Plus className="w-5 h-5 mr-2" />
+                    Add Member
+                  </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-md">
                   <DialogHeader>
-                    <DialogTitle className="text-2xl">Add Family Member</DialogTitle>
+                    <DialogTitle className="text-2xl">
+                      Add Family Member
+                    </DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4 pt-4">
                     <div className="space-y-2">
@@ -107,7 +159,9 @@ export function FamilyConnectScreen({ onNavigate, user }: FamilyConnectScreenPro
                       <Input
                         placeholder="Enter name"
                         value={newMember.name}
-                        onChange={(e) => setNewMember({ ...newMember, name: e.target.value })}
+                        onChange={(e) =>
+                          setNewMember({ ...newMember, name: e.target.value })
+                        }
                         className="h-12 text-lg"
                       />
                     </div>
@@ -116,26 +170,47 @@ export function FamilyConnectScreen({ onNavigate, user }: FamilyConnectScreenPro
                       <Input
                         placeholder="e.g., Son, Daughter, Grandchild"
                         value={newMember.relation}
-                        onChange={(e) => setNewMember({ ...newMember, relation: e.target.value })}
+                        onChange={(e) =>
+                          setNewMember({
+                            ...newMember,
+                            relation: e.target.value,
+                          })
+                        }
                         className="h-12 text-lg"
                       />
                     </div>
-                     <div className="space-y-2">
+                    <div className="space-y-2">
                       <label className="text-base">Phone Number</label>
                       <Input
                         placeholder="Enter phone number"
                         value={newMember.phone}
-                        onChange={(e) => setNewMember({ ...newMember, phone: e.target.value })}
+                        onChange={(e) =>
+                          setNewMember({ ...newMember, phone: e.target.value })
+                        }
                         className="h-12 text-lg"
                       />
                     </div>
-                     <div className="flex gap-3">
+                    <div className="space-y-2">
+                      <label className="text-base">Photo (Optional)</label>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
+                        className="h-12 text-lg"
+                      />
+                    </div>
+                    <div className="flex gap-3">
                       <Button
                         onClick={handleAddMember}
-                        disabled={!newMember.name || !newMember.relation || !newMember.phone}
+                        disabled={
+                          !newMember.name ||
+                          !newMember.relation ||
+                          !newMember.phone ||
+                          isUploading
+                        }
                         className="flex-1 h-12 bg-green-600 hover:bg-green-700"
                       >
-                        Add Member
+                        {isUploading ? "Uploading..." : "Add Member"}
                       </Button>
                       <Button
                         onClick={() => setIsAdding(false)}
@@ -151,18 +226,25 @@ export function FamilyConnectScreen({ onNavigate, user }: FamilyConnectScreenPro
             </div>
 
             {isLoading && <p>Loading family members...</p>}
-            
+
             {!isLoading && familyMembers?.length === 0 && (
-                <Card className="p-12 text-center bg-white">
-                    <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-xl text-gray-500">No family members added yet.</p>
-                    <p className="text-base text-gray-400 mt-2">Add your family members to get started.</p>
-                </Card>
+              <Card className="p-12 text-center bg-white">
+                <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-xl text-gray-500">
+                  No family members added yet.
+                </p>
+                <p className="text-base text-gray-400 mt-2">
+                  Add your family members to get started.
+                </p>
+              </Card>
             )}
 
             <div className="grid md:grid-cols-2 gap-4">
               {familyMembers?.map((member) => (
-                <Card key={member.id} className="p-6 bg-white shadow-md hover:shadow-lg transition-shadow">
+                <Card
+                  key={member.id}
+                  className="p-6 bg-white shadow-md hover:shadow-lg transition-shadow"
+                >
                   <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-4">
                       <ImageWithFallback
@@ -172,8 +254,12 @@ export function FamilyConnectScreen({ onNavigate, user }: FamilyConnectScreenPro
                       />
                       <div className="flex-1">
                         <h4 className="text-xl text-gray-900">{member.name}</h4>
-                        <p className="text-base text-gray-600">{member.relation}</p>
-                        <p className="text-base text-gray-500">{member.phone}</p>
+                        <p className="text-base text-gray-600">
+                          {member.relation}
+                        </p>
+                        <p className="text-base text-gray-500">
+                          {member.phone}
+                        </p>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -181,18 +267,21 @@ export function FamilyConnectScreen({ onNavigate, user }: FamilyConnectScreenPro
                         <Phone className="w-4 h-4 mr-2" />
                         Call
                       </Button>
-                      <Button variant="outline" className="h-10 rounded-xl flex-1">
+                      <Button
+                        variant="outline"
+                        className="h-10 rounded-xl flex-1"
+                      >
                         <MessageCircle className="w-4 h-4 mr-2" />
                         Message
                       </Button>
-                        <Button
-                          onClick={() => handleDeleteMember(member.id)}
-                          variant="outline"
-                          size="icon"
-                          className="h-10 w-10 rounded-xl border-red-200 text-red-600 hover:bg-red-50"
-                          title="Remove"
+                      <Button
+                        onClick={() => handleDeleteMember(member.id)}
+                        variant="outline"
+                        size="icon"
+                        className="h-10 w-10 rounded-xl border-red-200 text-red-600 hover:bg-red-50"
+                        title="Remove"
                       >
-                          <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>

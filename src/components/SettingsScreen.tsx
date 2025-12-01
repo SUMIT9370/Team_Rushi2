@@ -1,6 +1,5 @@
-
-"use client";
-import { useState, useRef } from "react";
+'use client';
+import { useState, useRef } from 'react';
 import {
   ArrowLeft,
   Volume2,
@@ -13,27 +12,26 @@ import {
   LogOut,
   Edit,
   Upload,
-} from "lucide-react";
-import { Button } from "./ui/button";
-import { Card } from "./ui/card";
-import { Switch } from "./ui/switch";
-import { Input } from "./ui/input";
+} from 'lucide-react';
+import { Button } from './ui/button';
+import { Card } from './ui/card';
+import { Switch } from './ui/switch';
+import { Input } from './ui/input';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "./ui/dialog";
-import { Screen } from "../app/page";
-import { ImageWithFallback } from "./ImageWithFallback";
-import { useUser, type User, useFirestore } from "@/firebase";
-import { signOut } from "@/firebase/auth/signout";
-import { doc, updateDoc } from "firebase/firestore";
-import { updateProfile } from "firebase/auth";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { useToast } from "@/hooks/use-toast";
-
+} from './ui/dialog';
+import { Screen } from '../app/page';
+import { ImageWithFallback } from './ImageWithFallback';
+import { useUser, type User, useFirestore } from '@/firebase';
+import { signOut } from '@/firebase/auth/signout';
+import { doc, updateDoc } from 'firebase/firestore';
+import { updateProfile } from 'firebase/auth';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useToast } from '@/hooks/use-toast';
 
 interface SettingsScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -49,19 +47,19 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
     highContrast: false,
     medicineReminders: true,
     familyMessages: true,
-    voiceSpeed: "normal",
-    textSize: "large",
-    language: "English",
+    voiceSpeed: 'normal',
+    textSize: 'large',
+    language: 'English',
   });
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileData, setProfileData] = useState({
-    displayName: user.displayName || "",
+    displayName: user.displayName || '',
   });
   const [uploading, setUploading] = useState(false);
 
   const handleLogout = async () => {
-    if (confirm("Are you sure you want to logout?")) {
+    if (confirm('Are you sure you want to logout?')) {
       await signOut();
       // The useUser hook will handle navigation back to login screen
     }
@@ -69,21 +67,23 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
 
   const handleUpdateProfile = async () => {
     if (profileData.displayName && firestore && user) {
-      const userDocRef = doc(firestore, "users", user.uid);
+      const userDocRef = doc(firestore, 'users', user.uid);
       await updateDoc(userDocRef, {
         displayName: profileData.displayName,
         updatedAt: new Date().toISOString(),
       });
       await updateProfile(user, { displayName: profileData.displayName });
       setIsEditingProfile(false);
-       toast({
-        title: "Profile Updated",
-        description: "Your display name has been updated.",
+      toast({
+        title: 'Profile Updated',
+        description: 'Your display name has been updated.',
       });
     }
   };
 
-  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file || !user) return;
 
@@ -96,27 +96,27 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
       const downloadURL = await getDownloadURL(snapshot.ref);
 
       // Update user profile in Auth and Firestore
-      await updateProfile(user, { photoURL: downloadURL });
-      const userDocRef = doc(firestore, "users", user.uid);
-      await updateDoc(userDocRef, { photoURL: downloadURL });
-      
-      toast({
-        title: "Avatar Updated",
-        description: "Your profile picture has been changed.",
-      });
+      if(user && firestore) {
+        await updateProfile(user, { photoURL: downloadURL });
+        const userDocRef = doc(firestore, 'users', user.uid);
+        await updateDoc(userDocRef, { photoURL: downloadURL });
+      }
 
-    } catch (error) {
-      console.error("Error uploading file:", error);
       toast({
-        variant: "destructive",
-        title: "Upload Failed",
-        description: "There was an error uploading your new avatar.",
+        title: 'Avatar Updated',
+        description: 'Your profile picture has been changed.',
+      });
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Upload Failed',
+        description: 'There was an error uploading your new avatar.',
       });
     } finally {
       setUploading(false);
     }
   };
-
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -125,7 +125,7 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
         <div className="max-w-4xl mx-auto px-6 py-4">
           <div className="flex items-center gap-4">
             <Button
-              onClick={() => onNavigate("home")}
+              onClick={() => onNavigate('home')}
               variant="ghost"
               className="text-white hover:bg-white/20 h-12 w-12 rounded-full p-0"
             >
@@ -145,10 +145,10 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
           {/* Profile Section */}
           <Card className="p-6 bg-white shadow-md">
             <div className="flex items-center gap-6">
-               <div className="relative">
+              <div className="relative">
                 <ImageWithFallback
                   src={user.photoURL || undefined}
-                  alt={user.displayName || "user"}
+                  alt={user.displayName || 'user'}
                   className="w-24 h-24 rounded-full object-cover border-4 border-indigo-200"
                 />
                 <input
@@ -400,7 +400,7 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
                   </div>
                 </div>
                 <Button
-                  onClick={() => onNavigate("emergency")}
+                  onClick={() => onNavigate('emergency')}
                   className="h-12 px-6 bg-red-500 hover:bg-red-600 rounded-xl"
                 >
                   Manage
@@ -451,7 +451,7 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
                 Contact Support
               </Button>
               <Button
-                onClick={() => onNavigate("chat")}
+                onClick={() => onNavigate('chat')}
                 variant="outline"
                 className="flex-1 h-14 rounded-xl border-2"
               >
