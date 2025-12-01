@@ -29,7 +29,7 @@ import { ImageWithFallback } from "./ImageWithFallback";
 import { useUser, type User } from "@/firebase/auth/use-user";
 import { signOut } from "@/firebase/auth/signout";
 import { doc, updateDoc } from "firebase/firestore";
-import { useFirestore } from "@/firebase/firestore/use-firestore";
+import { useFirestore } from "@/firebase";
 
 interface SettingsScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -448,5 +448,3 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
     </div>
   );
 }
-
-    

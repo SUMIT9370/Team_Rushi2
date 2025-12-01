@@ -1,17 +1,17 @@
 'use client';
 
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { getAuth } from '@/firebase';
+import { GoogleAuthProvider, signInWithPopup, getAuth as getFirebaseAuth } from 'firebase/auth';
+import { app } from '@/firebase/config';
 
 export async function signInWithGoogle() {
-  const auth = getAuth();
-  if (!auth) {
-    console.error('Firebase Auth is not initialized.');
-    return;
-  }
+  const auth = getFirebaseAuth(app);
   const provider = new GoogleAuthProvider();
   try {
-    await signInWithPopup(auth, provider);
+    const userCredential = await signInWithPopup(auth, provider);
+    const user = userCredential.user;
+
+    // TODO: Save or update user data in Firestore
+    
   } catch (error) {
     console.error('Error signing in with Google', error);
   }

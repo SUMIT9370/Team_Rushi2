@@ -8,7 +8,9 @@ import { FamilyConnectScreen } from "@/components/FamilyConnectScreen";
 import { SettingsScreen } from "@/components/SettingsScreen";
 import { HealthScreen } from "@/components/HealthScreen";
 import { useState } from "react";
-import { useUser, type User } from "@/firebase/auth/use-user";
+import { useUser } from "@/firebase";
+import type { User } from 'firebase/auth';
+
 
 export type Screen =
   | "login"

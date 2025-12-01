@@ -1,13 +1,10 @@
 'use client';
 
-import { getAuth } from '@/firebase';
+import { getAuth as getFirebaseAuth } from 'firebase/auth';
+import { app } from '@/firebase/config';
 
 export async function signOut() {
-  const auth = getAuth();
-  if (!auth) {
-    console.error('Firebase Auth is not initialized.');
-    return;
-  }
+  const auth = getFirebaseAuth(app);
   try {
     await auth.signOut();
   } catch (error) {
