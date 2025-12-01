@@ -18,6 +18,14 @@ interface ChatScreenProps {
   user: User;
 }
 
+const suggestions = [
+  'Check my reminders',
+  'How do I log my health vitals?',
+  'Call my family',
+  'What is my health summary?',
+  'Set a new reminder for my medicine',
+];
+
 export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -43,8 +51,8 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
     }
   }, [messages.length, user.displayName]);
 
-  const handleSend = async () => {
-    const messageText = inputValue.trim();
+  const handleSend = async (text?: string) => {
+    const messageText = text || inputValue.trim();
     if (!messageText) return;
 
     const newMessages: ChatMessage[] = [
@@ -62,21 +70,21 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
         message: messageText,
       });
 
-      setMessages([
-        ...newMessages,
-        { role: 'model', content: response },
-      ]);
+      setMessages([...newMessages, { role: 'model', content: response }]);
     } catch (error) {
       console.error('AI chat error:', error);
       setMessages([
         ...newMessages,
-        { role: 'model', content: "I'm having a little trouble thinking right now. Please try again in a moment." },
+        {
+          role: 'model',
+          content:
+            "I'm having a little trouble thinking right now. Please try again in a moment.",
+        },
       ]);
     } finally {
       setIsTyping(false);
     }
   };
-
 
   return (
     <div className="flex flex-col h-full bg-background text-foreground">
@@ -86,9 +94,15 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
           {messages.map((message, index) => (
             <div
               key={index}
-              className={`flex items-end gap-2 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex items-end gap-2 ${
+                message.role === 'user' ? 'justify-end' : 'justify-start'
+              }`}
             >
-              <div className={`max-w-[85%] ${message.role === 'user' ? 'order-2' : 'order-1'}`}>
+              <div
+                className={`max-w-[85%] ${
+                  message.role === 'user' ? 'order-2' : 'order-1'
+                }`}
+              >
                 <Card
                   className={`p-3 md:p-4 shadow-sm ${
                     message.role === 'user'
@@ -97,7 +111,6 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
                   }`}
                 >
                   <p className="text-base leading-relaxed">{message.content}</p>
-                  
                 </Card>
               </div>
             </div>
@@ -108,9 +121,18 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
             <div className="flex justify-start">
               <Card className="p-4 bg-card/60 border-border shadow-sm">
                 <div className="flex gap-1.5">
-                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <div
+                    className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
+                    style={{ animationDelay: '0ms' }}
+                  />
+                  <div
+                    className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
+                    style={{ animationDelay: '150ms' }}
+                  />
+                  <div
+                    className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
+                    style={{ animationDelay: '300ms' }}
+                  />
                 </div>
               </Card>
             </div>
@@ -120,9 +142,24 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
         </div>
       </div>
 
-      {/* Input Area */}
+      {/* Suggestions and Input Area */}
       <div className="bg-background/80 backdrop-blur-sm border-t sticky bottom-0">
-        <div className="max-w-4xl mx-auto p-2 sm:p-4">
+        <div className="max-w-4xl mx-auto p-2 sm:p-4 space-y-3">
+          {!isTyping && messages.length <= 2 && (
+             <div className="flex flex-wrap items-center justify-center gap-2 px-2">
+                {suggestions.map((suggestion, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleSend(suggestion)}
+                    className="rounded-full"
+                  >
+                    {suggestion}
+                  </Button>
+                ))}
+              </div>
+          )}
           <div className="flex items-center gap-2">
             <Button
               variant="secondary"
