@@ -1,28 +1,27 @@
-"use client";
-import { LoginScreen } from "@/components/LoginScreen";
-import { HomeScreen } from "@/components/HomeScreen";
-import { ChatScreen } from "@/components/ChatScreen";
-import { EmergencyScreen } from "@/components/EmergencyScreen";
-import { RemindersScreen } from "@/components/RemindersScreen";
-import { FamilyConnectScreen } from "@/components/FamilyConnectScreen";
-import { SettingsScreen } from "@/components/SettingsScreen";
-import { HealthScreen } from "@/components/HealthScreen";
-import { useState } from "react";
-import { useUser, useUserData } from "@/firebase";
-import { Toaster } from "@/components/ui/toaster";
-import { Loader2 } from "lucide-react";
-import { AppShell } from "@/components/app-shell";
-
+'use client';
+import { LoginScreen } from '@/components/LoginScreen';
+import { HomeScreen } from '@/components/HomeScreen';
+import { ChatScreen } from '@/components/ChatScreen';
+import { EmergencyScreen } from '@/components/EmergencyScreen';
+import { RemindersScreen } from '@/components/RemindersScreen';
+import { FamilyConnectScreen } from '@/components/FamilyConnectScreen';
+import { SettingsScreen } from '@/components/SettingsScreen';
+import { HealthScreen } from '@/components/HealthScreen';
+import { useState } from 'react';
+import { useUser, useUserData } from '@/firebase';
+import { Toaster } from '@/components/ui/toaster';
+import { Loader2 } from 'lucide-react';
+import { AppShell } from '@/components/app-shell';
 
 export type Screen =
-  | "login"
-  | "home"
-  | "chat"
-  | "emergency"
-  | "reminders"
-  | "family"
-  | "settings"
-  | "health";
+  | 'login'
+  | 'home'
+  | 'chat'
+  | 'emergency'
+  | 'reminders'
+  | 'family'
+  | 'settings'
+  | 'health';
 
 export interface EmergencyContact {
   id: string;
@@ -34,7 +33,7 @@ export interface EmergencyContact {
 }
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<Screen>("home");
+  const [currentScreen, setCurrentScreen] = useState<Screen>('home');
   const { user, isUserLoading } = useUser();
   const { data: userData, isLoading: isUserDataLoading } = useUserData();
 
@@ -51,7 +50,7 @@ export default function App() {
     }
 
     if (!userData) {
-       return (
+      return (
         <div className="flex items-center justify-center min-h-screen bg-background">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
           <p className="ml-4 text-muted-foreground">Loading user data...</p>
@@ -61,33 +60,69 @@ export default function App() {
 
     let screenComponent;
     switch (currentScreen) {
-      case "home":
-        screenComponent = <HomeScreen onNavigate={setCurrentScreen} user={user} userData={userData} />;
+      case 'home':
+        screenComponent = (
+          <HomeScreen
+            onNavigate={setCurrentScreen}
+            user={user}
+            userData={userData}
+          />
+        );
         break;
-      case "chat":
+      case 'chat':
         screenComponent = <ChatScreen onNavigate={setCurrentScreen} user={user} />;
         break;
-      case "emergency":
+      case 'emergency':
         screenComponent = <EmergencyScreen onNavigate={setCurrentScreen} />;
         break;
-      case "reminders":
-        screenComponent = <RemindersScreen onNavigate={setCurrentScreen} user={user} />;
+      case 'reminders':
+        screenComponent = (
+          <RemindersScreen onNavigate={setCurrentScreen} user={user} />
+        );
         break;
-      case "family":
-        screenComponent = <FamilyConnectScreen onNavigate={setCurrentScreen} user={user} />;
+      case 'family':
+        screenComponent = (
+          <FamilyConnectScreen onNavigate={setCurrentScreen} user={user} />
+        );
         break;
-      case "health":
+      case 'health':
         screenComponent = <HealthScreen onNavigate={setCurrentScreen} user={user} />;
         break;
-      case "settings":
-        screenComponent = <SettingsScreen onNavigate={setCurrentScreen} user={user} userData={userData} />;
+      case 'settings':
+        screenComponent = (
+          <SettingsScreen
+            onNavigate={setCurrentScreen}
+            user={user}
+            userData={userData}
+          />
+        );
         break;
       default:
-        screenComponent = <HomeScreen onNavigate={setCurrentScreen} user={user} userData={userData} />;
+        screenComponent = (
+          <HomeScreen
+            onNavigate={setCurrentScreen}
+            user={user}
+            userData={userData}
+          />
+        );
     }
 
-    return <AppShell onNavigate={setCurrentScreen} activeScreen={currentScreen}>{screenComponent}</AppShell>;
+    return (
+      <AppShell
+        onNavigate={setCurrentScreen}
+        activeScreen={currentScreen}
+        user={user}
+        userData={userData}
+      >
+        {screenComponent}
+      </AppShell>
+    );
   };
 
-  return <div className="min-h-screen bg-background">{renderScreen()}<Toaster /></div>;
+  return (
+    <div className="min-h-screen bg-background">
+      {renderScreen()}
+      <Toaster />
+    </div>
+  );
 }
