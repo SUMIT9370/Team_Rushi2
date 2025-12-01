@@ -1,0 +1,85 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "username": {
+          "type": "string",
+          "description": "The user's username."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of when the user was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp of when the user was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "username",
+        "email",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user data. Path-based ownership ensures only the user or an admin (via a separate /roles_admin/{userId} document check) can access or modify their own data.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_admin/{userId}",
+        "definition": {
+          "entityName": "adminRole",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Indicates admin privileges for a user.  The existence of this document grants admin rights. It should be used to authorize listing of all user data.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who has admin privileges."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "Given the application's core features (API Endpoint Setup, Database Integration, Authentication, and Data Validation) and the provided User entity, a simple and secure Firestore structure is recommended. Since only a User entity is defined, the structure focuses on managing user data.\n\n**Authorization Independence:**\nThe structure achieves authorization independence by storing user data directly under the `/users/{userId}` path.  This eliminates the need for `get()` calls in security rules to check parent document attributes, as user data is directly accessible at its designated path.\n\n**QAPs (Rules are not Filters):**\nThis structure enables secure `list` operations. To list users, one would ideally have an admin role, managed via a separate `/roles_admin/{userId}` document.  Security rules would check for the existence of this document before allowing the `list` operation.  Alternatively, a function deployed via cloud functions could expose API endpoints that list users based on some search criteria. Note, you would want to think carefully how these rules are applied. For example, should users who are authenticated be able to find other users to friend them? If so, a separate public 'users' collection would be valuable. This would provide greater segregation and separation of privacy.\n\n**Collection Group Considerations:**\nWith the current scope of information, there is no current need to use Collection Groups because there is only one entity, 'User'. Collection Groups are useful when collections with the same entity exist in multiple collection paths."
+  }
+}
