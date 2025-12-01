@@ -94,7 +94,6 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
 
         // Update user profile in Auth and Firestore
         if (user && firestore) {
-          await updateProfile(user, { photoURL: dataUrl });
           const userDocRef = doc(firestore, 'users', user.uid);
           await updateDoc(userDocRef, { photoURL: dataUrl });
         }
@@ -493,5 +492,3 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
     </div>
   );
 }
-
-    
