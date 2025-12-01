@@ -32,56 +32,9 @@ interface SharedPhoto {
 }
 
 export function FamilyConnectScreen({ onNavigate, user }: FamilyConnectScreenProps) {
-  const [messages, setMessages] = useState<FamilyMessage[]>([
-    {
-      id: 1,
-      from: 'Sarah Johnson',
-      message: 'Hi Mom! Hope you had a good morning. Love you! ❤️',
-      time: '2 hours ago',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
-      unread: true
-    },
-    {
-      id: 2,
-      from: 'John Johnson',
-      message: 'Don\'t forget to take your medicine! I\'ll call you this evening.',
-      time: '4 hours ago',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
-      unread: false
-    },
-    {
-      id: 3,
-      from: 'Emma Johnson',
-      message: 'Grandma, I got an A on my test! Thank you for helping me study! 🎉',
-      time: 'Yesterday',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
-      unread: true
-    }
-  ]);
+  const [messages, setMessages] = useState<FamilyMessage[]>([]);
 
-  const [sharedPhotos] = useState<SharedPhoto[]>([
-    {
-      id: 1,
-      from: 'Sarah',
-      caption: 'Family picnic last weekend! 🌳',
-      time: '3 days ago',
-      imageUrl: 'https://images.unsplash.com/photo-1627007410492-f410bb5ae2d6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYW1pbHklMjB0b2dldGhlciUyMGhhcHB5fGVufDF8fHx8MTc2MzkxNDM0Mnww&ixlib=rb-4.1.0&q=80&w=1080'
-    },
-    {
-      id: 2,
-      from: 'Emma',
-      caption: 'My art project at school 🎨',
-      time: '1 week ago',
-      imageUrl: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400'
-    },
-    {
-      id: 3,
-      from: 'John',
-      caption: 'Garden flowers blooming beautifully 🌸',
-      time: '2 weeks ago',
-      imageUrl: 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=400'
-    }
-  ]);
+  const [sharedPhotos] = useState<SharedPhoto[]>([]);
 
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [replyText, setReplyText] = useState('');

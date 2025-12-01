@@ -5,7 +5,9 @@ import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
-import { Screen, User } from '../app/page';
+import { Screen } from '../app/page';
+import type { User } from '@/firebase/auth/use-user';
+
 
 interface RemindersScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -23,53 +25,7 @@ interface Reminder {
 }
 
 export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
-  const [reminders, setReminders] = useState<Reminder[]>([
-    {
-      id: 1,
-      type: 'medicine',
-      title: 'Blood Pressure Medicine',
-      time: '9:00 AM',
-      description: 'Take 1 tablet with water',
-      completed: true,
-      emoji: '💊'
-    },
-    {
-      id: 2,
-      type: 'water',
-      title: 'Drink Water',
-      time: '11:00 AM',
-      description: 'Stay hydrated - 1 glass',
-      completed: false,
-      emoji: '💧'
-    },
-    {
-      id: 3,
-      type: 'medicine',
-      title: 'Vitamin D Supplement',
-      time: '2:00 PM',
-      description: 'Take 1 capsule with meal',
-      completed: false,
-      emoji: '💊'
-    },
-    {
-      id: 4,
-      type: 'doctor',
-      title: 'Doctor Appointment',
-      time: '4:30 PM',
-      description: 'Dr. Smith - Regular Checkup',
-      completed: false,
-      emoji: '🏥'
-    },
-    {
-      id: 5,
-      type: 'water',
-      title: 'Evening Water',
-      time: '5:00 PM',
-      description: 'Stay hydrated - 1 glass',
-      completed: false,
-      emoji: '💧'
-    }
-  ]);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
 
   const [isAdding, setIsAdding] = useState(false);
   const [newReminder, setNewReminder] = useState({
@@ -102,7 +58,7 @@ export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
         completed: false,
         emoji: newReminder.type === 'medicine' ? '💊' : newReminder.type === 'water' ? '💧' : newReminder.type === 'doctor' ? '🏥' : '📝'
       };
-      setReminders(prev => [...prev, reminder]);
+      setReminders(prev => [...prev, reminder].sort((a, b) => a.time.localeCompare(b.time)));
       setNewReminder({ title: '', time: '', description: '', type: 'other' });
       setIsAdding(false);
     }
@@ -123,6 +79,7 @@ export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
 
   const completedCount = reminders.filter(r => r.completed).length;
   const pendingCount = reminders.filter(r => !r.completed).length;
+  const progress = reminders.length > 0 ? (completedCount / reminders.length) * 100 : 0;
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -141,9 +98,11 @@ export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
               <Bell className="w-8 h-8" />
               <h2 className="text-2xl">My Reminders</h2>
             </div>
-            <Badge className="bg-white/20 text-white border-0 text-base px-4 py-2">
-              {pendingCount} Pending
-            </Badge>
+            {pendingCount > 0 && (
+              <Badge className="bg-white/20 text-white border-0 text-base px-4 py-2">
+                {pendingCount} Pending
+              </Badge>
+            )}
           </div>
         </div>
       </div>
@@ -162,14 +121,14 @@ export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
               </div>
               <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-md">
                 <span className="text-2xl text-gray-900">
-                  {Math.round((completedCount / reminders.length) * 100)}%
+                  {Math.round(progress)}%
                 </span>
               </div>
             </div>
             <div className="mt-4 h-3 bg-gray-200 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-green-500 to-emerald-600 transition-all duration-500"
-                style={{ width: `${(completedCount / reminders.length) * 100}%` }}
+                style={{ width: `${progress}%` }}
               />
             </div>
           </Card>
