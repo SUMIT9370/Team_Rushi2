@@ -207,35 +207,7 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-secondary">
-      {/* Header */}
-      <div className="bg-background/80 backdrop-blur-sm sticky top-0 z-10 border-b">
-        <div className="max-w-4xl mx-auto px-4 py-3">
-          <div className="flex items-center gap-4">
-            <Button
-              onClick={() => onNavigate('home')}
-              variant="ghost"
-              size="icon"
-              className="h-10 w-10 rounded-full"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div className="flex items-center gap-3 flex-1">
-              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                <Heart className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold">MITRAM Assistant</h2>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                  <p className="text-xs text-muted-foreground">Always here for you</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <div className="flex flex-col h-full bg-background text-foreground">
       {/* Messages */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
@@ -249,7 +221,7 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
                   className={`p-3 md:p-4 shadow-sm ${
                     message.sender === 'user'
                       ? 'bg-primary text-primary-foreground rounded-br-none'
-                      : 'bg-card text-card-foreground rounded-bl-none'
+                      : 'bg-card/60 text-card-foreground rounded-bl-none'
                   }`}
                 >
                   <p className="text-base leading-relaxed">{message.text}</p>
@@ -269,7 +241,7 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
                           key={index}
                           onClick={() => handleOptionClick(option.action)}
                           variant="outline"
-                          className="h-auto py-2.5 px-3 flex items-center justify-start gap-3 bg-card hover:bg-accent border shadow-sm rounded-lg transition-all"
+                          className="h-auto py-2.5 px-3 flex items-center justify-start gap-3 bg-card/60 hover:bg-accent border shadow-sm rounded-lg transition-all"
                         >
                           <Icon className="w-5 h-5 text-primary" />
                           <span className="text-sm font-medium">{option.label}</span>
@@ -285,7 +257,7 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
           {/* Typing Indicator */}
           {isTyping && (
             <div className="flex justify-start">
-              <Card className="p-4 bg-card border-gray-200 shadow-sm">
+              <Card className="p-4 bg-card/60 border-border shadow-sm">
                 <div className="flex gap-1.5">
                   <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                   <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -316,7 +288,7 @@ export function ChatScreen({ onNavigate, user }: ChatScreenProps) {
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Type your message..."
-              className="h-12 text-base rounded-full border-2 border-border focus:border-primary shadow-sm"
+              className="h-12 text-base rounded-full border-2 border-border focus:border-primary shadow-sm bg-secondary"
             />
             <Button
               onClick={() => handleSend()}

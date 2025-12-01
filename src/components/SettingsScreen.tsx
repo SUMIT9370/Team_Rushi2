@@ -1,21 +1,18 @@
 'use client';
 import { useState, useRef } from 'react';
 import {
-  ArrowLeft,
-  Volume2,
-  Type,
-  Moon,
-  Globe,
-  Users,
-  Shield,
-  Bell,
   LogOut,
   Edit,
   Upload,
+  User as UserIcon,
+  Palette,
+  Bell,
+  Languages,
+  Shield,
+  LifeBuoy
 } from 'lucide-react';
 import { Button } from './ui/button';
-import { Card } from './ui/card';
-import { Switch } from './ui/switch';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from './ui/card';
 import { Input } from './ui/input';
 import {
   Dialog,
@@ -31,6 +28,8 @@ import { signOut } from '@/firebase/auth/signout';
 import { doc, updateDoc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
+import { Switch } from './ui/switch';
+import { Label } from './ui/label';
 
 interface SettingsScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -42,15 +41,6 @@ export function SettingsScreen({ onNavigate, user, userData }: SettingsScreenPro
   const firestore = useFirestore();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const [settings, setSettings] = useState({
-    highContrast: false,
-    medicineReminders: true,
-    familyMessages: true,
-    voiceSpeed: 'normal',
-    textSize: 'large',
-    language: 'English',
-  });
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileData, setProfileData] = useState({
@@ -94,7 +84,6 @@ export function SettingsScreen({ onNavigate, user, userData }: SettingsScreenPro
         const dataUrl = reader.result as string;
 
         if (user && firestore) {
-            // This is a workaround to trigger onAuthStateChanged
             await updateProfile(user, { photoURL: `updated_at_${Date.now()}` });
             const userDocRef = doc(firestore, 'users', user.uid);
             await updateDoc(userDocRef, { photoURL: dataUrl });
@@ -120,37 +109,32 @@ export function SettingsScreen({ onNavigate, user, userData }: SettingsScreenPro
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col p-4 md:p-8 space-y-8">
       {/* Header */}
-      <div className="bg-gradient-to-r from-slate-700 to-gray-700 text-white shadow-lg">
-        <div className="max-w-4xl mx-auto px-6 py-4">
-          <div className="flex items-center gap-4">
-            <Button
-              onClick={() => onNavigate('home')}
-              variant="ghost"
-              className="text-white hover:bg-white/20 h-12 w-12 rounded-full p-0"
-            >
-              <ArrowLeft className="w-6 h-6" />
-            </Button>
-            <div className="flex items-center gap-3">
-              <Shield className="w-8 h-8" />
-              <h2 className="text-2xl">Settings</h2>
-            </div>
-          </div>
+      <header>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+          <p className="text-muted-foreground">Manage your account and preferences.</p>
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto p-6 space-y-6">
-          {/* Profile Section */}
-          <Card className="p-6 bg-white shadow-md">
+      <div className="flex-1 space-y-8">
+        {/* Profile Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <UserIcon className="w-5 h-5"/> Profile
+            </CardTitle>
+            <CardDescription>This is your personal information.</CardDescription>
+          </CardHeader>
+          <CardContent>
             <div className="flex items-center gap-6">
               <div className="relative">
                 <ImageWithFallback
                   src={userData.photoURL || undefined}
                   alt={userData.displayName || 'user'}
-                  className="w-24 h-24 rounded-full object-cover border-4 border-indigo-200"
+                  className="w-24 h-24 rounded-full object-cover border-4 border-primary/20"
                 />
                 <input
                   type="file"
@@ -161,25 +145,26 @@ export function SettingsScreen({ onNavigate, user, userData }: SettingsScreenPro
                 />
                 <Button
                   size="icon"
-                  className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-indigo-600 hover:bg-indigo-700"
+                  className="absolute bottom-0 right-0 h-8 w-8 rounded-full"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
+                  title="Upload new avatar"
                 >
                   <Upload className="h-4 w-4" />
                 </Button>
               </div>
               <div className="flex-1">
-                <h3 className="text-2xl text-gray-900 mb-1">
+                <h3 className="text-2xl font-semibold mb-1">
                   {userData.displayName}
                 </h3>
-                <p className="text-lg text-gray-600 mb-3">{user.email}</p>
+                <p className="text-lg text-muted-foreground mb-3">{user.email}</p>
                 <Dialog
                   open={isEditingProfile}
                   onOpenChange={setIsEditingProfile}
                 >
                   <DialogTrigger asChild>
-                    <Button className="bg-indigo-600 hover:bg-indigo-700 rounded-xl">
-                      <Edit className="w-5 h-5 mr-2" />
+                    <Button variant="secondary">
+                      <Edit className="w-4 h-4 mr-2" />
                       Edit Profile
                     </Button>
                   </DialogTrigger>
@@ -189,7 +174,7 @@ export function SettingsScreen({ onNavigate, user, userData }: SettingsScreenPro
                     </DialogHeader>
                     <div className="space-y-4 pt-4">
                       <div className="space-y-2">
-                        <label className="text-base">Name</label>
+                        <Label>Name</Label>
                         <Input
                           value={profileData.displayName}
                           onChange={(e) =>
@@ -198,13 +183,13 @@ export function SettingsScreen({ onNavigate, user, userData }: SettingsScreenPro
                               displayName: e.target.value,
                             })
                           }
-                          className="h-12 text-lg"
+                          className="h-12 text-base"
                         />
                       </div>
-                      <div className="flex gap-3">
+                      <div className="flex gap-3 pt-4">
                         <Button
                           onClick={handleUpdateProfile}
-                          className="flex-1 h-12 bg-green-600 hover:bg-green-700"
+                          className="flex-1 h-12"
                         >
                           Save Changes
                         </Button>
@@ -221,275 +206,79 @@ export function SettingsScreen({ onNavigate, user, userData }: SettingsScreenPro
                 </Dialog>
               </div>
             </div>
-          </Card>
+          </CardContent>
+        </Card>
 
-          {/* Display Settings */}
-          <div className="space-y-4">
-            <h3 className="text-2xl text-gray-900">Display & Accessibility</h3>
-
-            <Card className="p-6 bg-white shadow-md">
-              <div className="space-y-6">
-                {/* Text Size */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                      <Type className="w-7 h-7 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-lg text-gray-900">Text Size</p>
-                      <p className="text-base text-gray-600">
-                        Currently: {settings.textSize}
-                      </p>
-                    </div>
-                  </div>
-                  <select
-                    value={settings.textSize}
-                    onChange={(e) =>
-                      setSettings({ ...settings, textSize: e.target.value })
-                    }
-                    className="h-12 px-4 text-base border-2 rounded-xl"
-                  >
-                    <option value="small">Small</option>
-                    <option value="medium">Medium</option>
-                    <option value="large">Large</option>
-                    <option value="extra-large">Extra Large</option>
-                  </select>
-                </div>
-
-                {/* High Contrast */}
-                <div className="flex items-center justify-between pt-4 border-t">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                      <Moon className="w-7 h-7 text-purple-600" />
-                    </div>
-                    <div>
-                      <p className="text-lg text-gray-900">High Contrast Mode</p>
-                      <p className="text-base text-gray-600">Easier to read</p>
-                    </div>
-                  </div>
-                  <Switch
-                    checked={settings.highContrast}
-                    onCheckedChange={(checked) =>
-                      setSettings({ ...settings, highContrast: checked })
-                    }
-                  />
-                </div>
-
-                {/* Voice Speed */}
-                <div className="flex items-center justify-between pt-4 border-t">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                      <Volume2 className="w-7 h-7 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="text-lg text-gray-900">Voice Speed</p>
-                      <p className="text-base text-gray-600">
-                        Currently: {settings.voiceSpeed}
-                      </p>
-                    </div>
-                  </div>
-                  <select
-                    value={settings.voiceSpeed}
-                    onChange={(e) =>
-                      setSettings({ ...settings, voiceSpeed: e.target.value })
-                    }
-                    className="h-12 px-4 text-base border-2 rounded-xl"
-                  >
-                    <option value="slow">Slow</option>
-                    <option value="normal">Normal</option>
-                    <option value="fast">Fast</option>
-                  </select>
-                </div>
-              </div>
-            </Card>
-          </div>
-
-          {/* Language Settings */}
-          <div className="space-y-4">
-            <h3 className="text-2xl text-gray-900">Language</h3>
-
-            <Card className="p-6 bg-white shadow-md">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-orange-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                    <Globe className="w-7 h-7 text-orange-600" />
-                  </div>
-                  <div>
-                    <p className="text-lg text-gray-900">App Language</p>
-                    <p className="text-base text-gray-600">
-                      Currently: {settings.language}
-                    </p>
-                  </div>
-                </div>
-                <select
-                  value={settings.language}
-                  onChange={(e) =>
-                    setSettings({ ...settings, language: e.target.value })
-                  }
-                  className="h-12 px-4 text-base border-2 rounded-xl"
-                >
-                  <option value="English">English</option>
-                  <option value="Spanish">Español</option>
-                  <option value="French">Français</option>
-                  <option value="German">Deutsch</option>
-                  <option value="Hindi">हिन्दी</option>
-                </select>
-              </div>
-            </Card>
-          </div>
-
-          {/* Notifications */}
-          <div className="space-y-4">
-            <h3 className="text-2xl text-gray-900">Notifications</h3>
-
-            <Card className="p-6 bg-white shadow-md">
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                      <Bell className="w-7 h-7 text-red-600" />
-                    </div>
-                    <div>
-                      <p className="text-lg text-gray-900">
-                        Medicine Reminders
-                      </p>
-                      <p className="text-base text-gray-600">Sound + Vibration</p>
-                    </div>
-                  </div>
-                  <Switch
-                    checked={settings.medicineReminders}
-                    onCheckedChange={(checked) =>
-                      setSettings({ ...settings, medicineReminders: checked })
-                    }
-                  />
-                </div>
-
-                <div className="flex items-center justify-between pt-4 border-t">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                      <Bell className="w-7 h-7 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-lg text-gray-900">Family Messages</p>
-                      <p className="text-base text-gray-600">Instant alerts</p>
-                    </div>
-                  </div>
-                  <Switch
-                    checked={settings.familyMessages}
-                    onCheckedChange={(checked) =>
-                      setSettings({ ...settings, familyMessages: checked })
-                    }
-                  />
-                </div>
-              </div>
-            </Card>
-          </div>
-
-          {/* Emergency Contacts */}
-          <div className="space-y-4">
-            <h3 className="text-2xl text-gray-900">Emergency</h3>
-
-            <Card className="p-6 bg-white shadow-md">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                    <Users className="w-7 h-7 text-red-600" />
-                  </div>
-                  <div>
-                    <p className="text-lg text-gray-900">Emergency Contacts</p>
-                    <p className="text-base text-gray-600">Manage your contacts</p>
-                  </div>
-                </div>
-                <Button
-                  onClick={() => onNavigate('emergency')}
-                  className="h-12 px-6 bg-red-500 hover:bg-red-600 rounded-xl"
-                >
-                  Manage
-                </Button>
-              </div>
-            </Card>
-          </div>
-
-          {/* Privacy & Security */}
-          <Card className="p-6 bg-green-50 border-green-200">
-            <div className="flex items-start gap-4">
-              <Shield className="w-8 h-8 text-green-600 flex-shrink-0 mt-1" />
-              <div>
-                <h3 className="text-xl text-green-900 mb-3">
-                  Privacy & Security
-                </h3>
-                <div className="space-y-2 text-base text-gray-700">
-                  <div className="flex items-center gap-2">
-                    <span className="text-green-600">🔒</span>
-                    <span>Your data is encrypted and secure</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-green-600">👨‍👩‍👧</span>
-                    <span>Family-controlled access only</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-green-600">🚫</span>
-                    <span>No unnecessary data collection</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-green-600">✅</span>
-                    <span>Privacy-first design</span>
-                  </div>
-                </div>
-              </div>
+        {/* Display & Accessibility */}
+        <Card>
+          <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="w-5 h-5"/> Display & Accessibility
+              </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-4 rounded-lg bg-card/60">
+              <Label htmlFor="dark-mode" className="text-base">Dark Mode</Label>
+              <Switch id="dark-mode" />
             </div>
-          </Card>
-
-          {/* Help & Support */}
-          <Card className="p-6 bg-blue-50 border-blue-200">
-            <h3 className="text-xl text-blue-900 mb-3">Need Help?</h3>
-            <p className="text-base text-gray-700 mb-4">
-              If you need assistance with any settings or have questions, our
-              support team is here to help you 24/7.
-            </p>
-            <div className="flex gap-3">
-              <Button className="flex-1 h-14 bg-blue-600 hover:bg-blue-700 rounded-xl">
-                Contact Support
-              </Button>
-              <Button
-                onClick={() => onNavigate('chat')}
-                variant="outline"
-                className="flex-1 h-14 rounded-xl border-2"
-              >
-                Chat with MITRAM
-              </Button>
+            <div className="flex items-center justify-between p-4 rounded-lg bg-card/60">
+              <Label htmlFor="high-contrast" className="text-base">High Contrast</Label>
+              <Switch id="high-contrast" />
             </div>
-          </Card>
-
-          {/* Logout */}
-          <Card className="p-6 bg-white shadow-md">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                  <LogOut className="w-7 h-7 text-gray-600" />
-                </div>
-                <div>
-                  <p className="text-lg text-gray-900">Logout</p>
-                  <p className="text-base text-gray-600">
-                    Sign out of your account
-                  </p>
-                </div>
-              </div>
-              <Button
-                onClick={handleLogout}
-                variant="outline"
-                className="h-12 px-6 border-2 border-red-200 text-red-600 hover:bg-red-50 rounded-xl"
-              >
-                Logout
-              </Button>
+          </CardContent>
+        </Card>
+        
+        {/* Notifications */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><Bell className="w-5 h-5"/> Notifications</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-4 rounded-lg bg-card/60">
+              <Label htmlFor="medicine-reminders" className="text-base">Medicine Reminders</Label>
+              <Switch id="medicine-reminders" defaultChecked />
             </div>
-          </Card>
+            <div className="flex items-center justify-between p-4 rounded-lg bg-card/60">
+              <Label htmlFor="family-messages" className="text-base">Family Messages</Label>
+              <Switch id="family-messages" defaultChecked />
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* App Info */}
-          <div className="text-center py-4 text-gray-500">
-            <p className="text-sm">MITRAM v1.0.0</p>
-            <p className="text-sm">Your trusted digital companion</p>
-          </div>
+        {/* Other Sections */}
+        <div className="grid md:grid-cols-2 gap-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Languages className="w-5 h-5"/> Language</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Current language: English</p>
+              </CardContent>
+            </Card>
+             <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Shield className="w-5 h-5"/> Privacy</CardTitle>
+              </CardHeader>
+              <CardContent>
+                 <Button variant="secondary">Manage Data</Button>
+              </CardContent>
+            </Card>
+             <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><LifeBuoy className="w-5 h-5"/> Support</CardTitle>
+              </CardHeader>
+              <CardContent>
+                 <Button variant="secondary">Contact Us</Button>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><LogOut className="w-5 h-5"/> Logout</CardTitle>
+              </CardHeader>
+              <CardContent>
+                 <Button variant="destructive" onClick={handleLogout}>Sign Out</Button>
+              </CardContent>
+            </Card>
         </div>
       </div>
     </div>

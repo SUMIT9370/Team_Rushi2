@@ -9,7 +9,7 @@ import {
   Users,
 } from 'lucide-react';
 import { Button } from './ui/button';
-import { Card } from './ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Input } from './ui/input';
 import {
   Dialog,
@@ -110,6 +110,7 @@ export function FamilyConnectScreen({
         setNewMember({ name: '', relation: '', phone: '' });
         setAvatarFile(null);
         setIsAdding(false);
+        toast({ title: "Family Member Added", description: `${newMember.name} has been added to your circle.`});
       } catch (error) {
         console.error("Error adding member:", error);
         toast({
@@ -127,39 +128,34 @@ export function FamilyConnectScreen({
   const handleDeleteMember = async (id: string) => {
     if (db && user) {
       await deleteDoc(doc(db, 'users', user.uid, 'familyMembers', id));
+      toast({ title: "Family Member Removed" });
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col p-4 md:p-8 space-y-8">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg">
-        <div className="max-w-4xl mx-auto px-6 py-4">
-          <div className="flex items-center gap-4">
-            <Button
-              onClick={() => onNavigate('home')}
-              variant="ghost"
-              className="text-white hover:bg-white/20 h-12 w-12 rounded-full p-0"
-            >
-              <ArrowLeft className="w-6 h-6" />
-            </Button>
-            <div className="flex items-center gap-3 flex-1">
-              <Users className="w-8 h-8" />
-              <h2 className="text-2xl">Family Connect</h2>
-            </div>
-          </div>
+      <header>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Family Circle</h1>
+          <p className="text-muted-foreground">Stay connected with your loved ones.</p>
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto p-6 space-y-6">
-          <div className="space-y-4">
+      <div className="flex-1 space-y-8">
+        <Card>
+          <CardHeader>
             <div className="flex items-center justify-between">
-              <h3 className="text-2xl text-gray-900">Your Family Circle</h3>
+                <div>
+                    <CardTitle>Your Family Members</CardTitle>
+                    <p className="text-muted-foreground text-sm mt-1">
+                        {familyMembers?.length || 0} members in your circle.
+                    </p>
+                </div>
               <Dialog open={isAdding} onOpenChange={setIsAdding}>
                 <DialogTrigger asChild>
-                  <Button className="bg-indigo-600 hover:bg-indigo-700 rounded-xl">
+                  <Button>
                     <Plus className="w-5 h-5 mr-2" />
                     Add Member
                   </Button>
@@ -172,20 +168,20 @@ export function FamilyConnectScreen({
                   </DialogHeader>
                   <div className="space-y-4 pt-4">
                     <div className="space-y-2">
-                      <label className="text-base">Name</label>
+                      <label className="text-sm font-medium text-muted-foreground">Name</label>
                       <Input
                         placeholder="Enter name"
                         value={newMember.name}
                         onChange={(e) =>
                           setNewMember({ ...newMember, name: e.target.value })
                         }
-                        className="h-12 text-lg"
+                        className="h-12 text-base"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-base">Relation</label>
+                      <label className="text-sm font-medium text-muted-foreground">Relation</label>
                       <Input
-                        placeholder="e.g., Son, Daughter, Grandchild"
+                        placeholder="e.g., Son, Grandchild"
                         value={newMember.relation}
                         onChange={(e) =>
                           setNewMember({
@@ -193,32 +189,32 @@ export function FamilyConnectScreen({
                             relation: e.target.value,
                           })
                         }
-                        className="h-12 text-lg"
+                        className="h-12 text-base"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-base">Phone Number</label>
+                      <label className="text-sm font-medium text-muted-foreground">Phone Number</label>
                       <Input
                         placeholder="Enter phone number"
                         value={newMember.phone}
                         onChange={(e) =>
                           setNewMember({ ...newMember, phone: e.target.value })
                         }
-                        className="h-12 text-lg"
+                        className="h-12 text-base"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-base">Photo (Optional)</label>
+                      <label className="text-sm font-medium text-muted-foreground">Photo (Optional)</label>
                       <Input
                         type="file"
                         accept="image/*"
                         onChange={(e) =>
                           setAvatarFile(e.target.files?.[0] || null)
                         }
-                        className="h-12 text-lg"
+                        className="h-12 text-base file:text-foreground"
                       />
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 pt-4">
                       <Button
                         onClick={handleAddMember}
                         disabled={
@@ -227,7 +223,7 @@ export function FamilyConnectScreen({
                           !newMember.phone ||
                           isUploading
                         }
-                        className="flex-1 h-12 bg-green-600 hover:bg-green-700"
+                        className="flex-1 h-12"
                       >
                         {isUploading ? 'Saving...' : 'Add Member'}
                       </Button>
@@ -243,63 +239,65 @@ export function FamilyConnectScreen({
                 </DialogContent>
               </Dialog>
             </div>
+          </CardHeader>
 
-            {isLoading && <p>Loading family members...</p>}
+          <CardContent>
+            {isLoading && <p className="text-muted-foreground text-center py-8">Loading family members...</p>}
 
             {!isLoading && familyMembers?.length === 0 && (
-              <Card className="p-12 text-center bg-white">
-                <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-xl text-gray-500">
-                  No family members added yet.
+              <div className="p-12 text-center">
+                <Users className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+                <p className="text-xl text-muted-foreground">
+                  Your family circle is empty.
                 </p>
-                <p className="text-base text-gray-400 mt-2">
+                <p className="text-base text-muted-foreground/80 mt-2">
                   Add your family members to get started.
                 </p>
-              </Card>
+              </div>
             )}
-
+            
             <div className="grid md:grid-cols-2 gap-4">
               {familyMembers?.map((member) => (
                 <Card
                   key={member.id}
-                  className="p-6 bg-white shadow-md hover:shadow-lg transition-shadow"
+                  className="p-4 bg-card/60"
                 >
                   <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-4">
                       <ImageWithFallback
                         src={member.avatar}
                         alt={member.name}
-                        className="w-20 h-20 rounded-full object-cover flex-shrink-0"
+                        className="w-16 h-16 rounded-full object-cover flex-shrink-0"
                       />
                       <div className="flex-1">
-                        <h4 className="text-xl text-gray-900">
+                        <h4 className="text-lg font-semibold text-foreground">
                           {member.name}
                         </h4>
-                        <p className="text-base text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                           {member.relation}
                         </p>
-                        <p className="text-base text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                           {member.phone}
                         </p>
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button className="h-10 bg-blue-500 hover:bg-blue-600 rounded-xl flex-1">
+                    <div className="flex items-center gap-2">
+                      <Button className="h-10 bg-blue-500 hover:bg-blue-600 rounded-lg flex-1">
                         <Phone className="w-4 h-4 mr-2" />
                         Call
                       </Button>
                       <Button
-                        variant="outline"
-                        className="h-10 rounded-xl flex-1"
+                        variant="secondary"
+                        className="h-10 rounded-lg flex-1"
                       >
                         <MessageCircle className="w-4 h-4 mr-2" />
                         Message
                       </Button>
                       <Button
                         onClick={() => handleDeleteMember(member.id)}
-                        variant="outline"
+                        variant="ghost"
                         size="icon"
-                        className="h-10 w-10 rounded-xl border-red-200 text-red-600 hover:bg-red-50"
+                        className="h-10 w-10 rounded-full text-red-400 hover:bg-red-500/10 hover:text-red-300"
                         title="Remove"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -309,11 +307,9 @@ export function FamilyConnectScreen({
                 </Card>
               ))}
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
 }
-
-    
