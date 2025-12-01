@@ -1,6 +1,6 @@
 'use client';
 
-import { auth } from '@/firebase/config';
+import { auth } from '@/firebase';
 
 export async function signOut() {
   try {

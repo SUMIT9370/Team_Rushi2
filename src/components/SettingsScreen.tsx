@@ -26,10 +26,9 @@ import {
 } from "./ui/dialog";
 import { Screen } from "../app/page";
 import { ImageWithFallback } from "./ImageWithFallback";
-import { useUser, type User } from "@/firebase";
+import { useUser, type User, useFirestore } from "@/firebase";
 import { signOut } from "@/firebase/auth/signout";
 import { doc, updateDoc } from "firebase/firestore";
-import { useFirestore } from "@/firebase";
 
 interface SettingsScreenProps {
   onNavigate: (screen: Screen) => void;
