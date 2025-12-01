@@ -1,33 +1,24 @@
 /**
- * This ruleset establishes a security model with two primary access levels:
- * user ownership and global administration.
+ * This ruleset establishes a security model based on user ownership.
  *
  * Core Philosophy:
- * The security model is built on the principle of least privilege. Regular users
- * have strict control over their own data and cannot see or modify anyone else's.
- * A separate, elevated 'admin' role is required for broad, read-only access
- * to the entire user dataset, primarily for administrative oversight.
+ * The security model is built on the principle of least privilege. Users have
+ * strict control over their own data and cannot see or modify anyone else's.
  *
  * Data Structure:
  * - /users/{userId}: This collection stores the primary data for each user.
  *   Access is strictly controlled by matching the authenticated user's ID
  *   with the {userId} in the document path.
- * - /roles_admin/{userId}: This collection serves as an access control list
- *   for administrators. The mere existence of a document for a given user ID
- *   in this collection grants them admin privileges. This collection is
- *   intentionally locked down from all client-side writes to prevent any
- *   form of privilege escalation.
+ * - /users/{userId}/emergencyContacts/{contactId}: This subcollection stores
+ *   emergency contacts for a user. Access is inherited from the parent user
+ *   document, ensuring only the user can manage their contacts.
  *
  * Key Security Decisions:
  * - User Data Privacy: Users can only create, read, update, or delete their
- *   own user document. They cannot view other users' profiles.
- * - Admin Listing: The ability to list all users is a privileged operation
- *   reserved exclusively for users designated as admins in the /roles_admin
- *   collection.
- * - Secure Role Management: The /roles_admin collection is read-only and
- *   write-only from the server-side (e.g., via a Cloud Function or Admin SDK).
- *   This is a critical security measure to prevent users from granting
- *   themselves or others administrative rights.
+ *   own user document and subcollections. They cannot view other users' data.
+ * - Secure Data Creation: Rules enforce that the `id` field of a new user
+ *   document matches the auth `uid`, preventing identity spoofing.
+ * - Immutable User ID: The user ID field cannot be changed after creation.
  * - Default Deny: Any operation not explicitly permitted is denied.
  */
 rules_version = '2';
@@ -44,28 +35,11 @@ service cloud.firestore {
     }
 
     /**
-     * Checks if the currently authenticated user has an admin role.
-     * An admin is defined by the existence of a document in the 'roles_admin' collection
-     * that corresponds to their user ID.
-     */
-    function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
-    }
-
-    /**
      * Validates if the requesting user is the owner of the document.
      * Compares the user's UID with the document's ID from the path.
      */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
-    }
-
-    /**
-     * Ensures an operation is performed by the owner on an existing document.
-     * Crucial for preventing writes to non-existent paths.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
     }
 
     /**
@@ -85,46 +59,20 @@ service cloud.firestore {
     }
 
     /**
-     * @description Manages user profile data. Access is restricted to the document owner,
-     *              with a special exception for admins to list all users.
+     * @description Manages user profile data. Access is restricted to the document owner.
      * @path /users/{userId}
-     * @allow (get) An authenticated user 'user123' can get their own document at /users/user123.
-     * @allow (list) An admin user can list all documents in the /users collection.
-     * @allow (create) An authenticated user 'user123' can create their own document at /users/user123.
-     * @deny (get) User 'user123' is denied access to /users/user456.
-     * @deny (list) A non-admin user cannot list documents in the /users collection.
-     * @principle Restricts access to a user's own data tree and provides a secure admin override for listing.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if isAdmin();
+      allow read, update, delete: if isOwner(userId);
       allow create: if isCreatingOwnUserData(userId);
-      allow update: if isExistingOwner(userId) && hasImmutableUserId();
-      allow delete: if isExistingOwner(userId);
-    }
-    
-    // Emergency Contacts subcollection
-    match /users/{userId}/emergencyContacts/{contactId} {
-      allow read, write: if isOwner(userId);
-    }
-    
 
-    /**
-     * @description Manages admin role assignments. This collection is locked down from all
-     *              client access to prevent privilege escalation. Roles must be assigned
-     *              using the Firebase Admin SDK in a trusted server environment.
-     * @path /roles_admin/{userId}
-     * @allow (none) No client-side operations are permitted.
-     * @deny (get) A user trying to read /roles_admin/user123 to check for admin status.
-     * @deny (create) A user attempting to write to /roles_admin/user123 to make themselves an admin.
-     * @principle Enforces server-side control over critical authorization metadata.
-     */
-    match /roles_admin/{userId} {
-      allow get: if false;
-      allow list: if false;
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      /**
+       * @description Manages emergency contacts for a user. Access is inherited from the user.
+       * @path /users/{userId}/emergencyContacts/{contactId}
+       */
+      match /emergencyContacts/{contactId} {
+        allow read, write: if isOwner(userId);
+      }
     }
   }
 }

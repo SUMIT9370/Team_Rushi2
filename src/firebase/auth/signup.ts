@@ -4,7 +4,7 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth, getSdks } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 
-export async function signUpWithEmail(email, password, displayName) {
+export async function signUpWithEmail(email: string, password: string, displayName: string) {
   let result = null,
     error = null;
   try {
@@ -16,7 +16,7 @@ export async function signUpWithEmail(email, password, displayName) {
     const userRef = doc(firestore, 'users', result.user.uid);
     await setDoc(userRef, {
       id: result.user.uid,
-      username: displayName,
+      displayName: displayName,
       email: result.user.email,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

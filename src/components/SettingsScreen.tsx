@@ -29,6 +29,7 @@ import { ImageWithFallback } from "./ImageWithFallback";
 import { useUser, type User, useFirestore } from "@/firebase";
 import { signOut } from "@/firebase/auth/signout";
 import { doc, updateDoc } from "firebase/firestore";
+import { updateProfile } from "firebase/auth";
 
 interface SettingsScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -37,7 +38,6 @@ interface SettingsScreenProps {
 
 export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
   const firestore = useFirestore();
-  // const { updateUser } = useUser();
   const [settings, setSettings] = useState({
     highContrast: false,
     medicineReminders: true,
@@ -50,26 +50,23 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileData, setProfileData] = useState({
     displayName: user.displayName || "",
-    // age: user.age?.toString() ?? "",
   });
 
   const handleLogout = async () => {
     if (confirm("Are you sure you want to logout?")) {
       await signOut();
-      onNavigate("login");
+      // The useUser hook will handle navigation back to login screen
     }
   };
 
   const handleUpdateProfile = async () => {
-    if (profileData.displayName) {
-      // await updateUser({ displayName: profileData.displayName });
-      if (firestore && user.uid) {
-        const userDocRef = doc(firestore, "users", user.uid);
-        await updateDoc(userDocRef, {
-          displayName: profileData.displayName,
-          // age: parseInt(profileData.age),
-        });
-      }
+    if (profileData.displayName && firestore && user) {
+      const userDocRef = doc(firestore, "users", user.uid);
+      await updateDoc(userDocRef, {
+        displayName: profileData.displayName,
+        updatedAt: new Date().toISOString(),
+      });
+      await updateProfile(user, { displayName: profileData.displayName });
       setIsEditingProfile(false);
     }
   };
@@ -110,7 +107,7 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
                 <h3 className="text-2xl text-gray-900 mb-1">
                   {user.displayName}
                 </h3>
-                {/* <p className="text-lg text-gray-600 mb-3">{user.age} years old</p> */}
+                <p className="text-lg text-gray-600 mb-3">{user.email}</p>
                 <Dialog
                   open={isEditingProfile}
                   onOpenChange={setIsEditingProfile}
@@ -139,20 +136,6 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
                           className="h-12 text-lg"
                         />
                       </div>
-                      {/* <div className="space-y-2">
-                        <label className="text-base">Age</label>
-                        <Input
-                          type="number"
-                          value={profileData.age}
-                          onChange={(e) =>
-                            setProfileData({
-                              ...profileData,
-                              age: e.target.value,
-                            })
-                          }
-                          className="h-12 text-lg"
-                        />
-                      </div> */}
                       <div className="flex gap-3">
                         <Button
                           onClick={handleUpdateProfile}
@@ -349,7 +332,7 @@ export function SettingsScreen({ onNavigate, user }: SettingsScreenProps) {
                   </div>
                   <div>
                     <p className="text-lg text-gray-900">Emergency Contacts</p>
-                    <p className="text-base text-gray-600">3 contacts added</p>
+                    <p className="text-base text-gray-600">Manage your contacts</p>
                   </div>
                 </div>
                 <Button
