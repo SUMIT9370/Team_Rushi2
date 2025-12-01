@@ -1,3 +1,5 @@
+"use client";
+
 import { BarChart, Users, Zap, Server } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
