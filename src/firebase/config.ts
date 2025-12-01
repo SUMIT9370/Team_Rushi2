@@ -1,36 +1,27 @@
-
+'use client';
 import { initializeApp, getApp, getApps, FirebaseApp } from 'firebase/app';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getAuth, Auth } from 'firebase/auth';
 
-// --- IMPORTANT ---
-// Replace the placeholder values below with your actual
-// Firebase project's configuration.
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY_HERE",
-  authDomain: "YOUR_AUTH_DOMAIN_HERE",
-  projectId: "YOUR_PROJECT_ID_HERE",
-  storageBucket: "YOUR_STORAGE_BUCKET_HERE",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID_HERE",
-  appId: "YOUR_APP_ID_HERE"
+  projectId: "studio-2271828587-d1be7",
+  appId: "1:215654047100:web:1ce0294851846e1ef8d8f9",
+  apiKey: "AIzaSyAL8w1AOJvwMeORLfRxwlh1ac0l0h3Milo",
+  authDomain: "studio-2271828587-d1be7.firebaseapp.com",
+  measurementId: "",
+  messagingSenderId: "215654047100",
 };
 
-function initializeFirebase(): { app: FirebaseApp; auth: Auth; db: Firestore } {
-  let app: FirebaseApp;
-  let auth: Auth;
-  let db: Firestore;
+let app: FirebaseApp;
+let auth: Auth;
+let db: Firestore;
 
-  if (!getApps().length) {
-    app = initializeApp(firebaseConfig);
-  } else {
-    app = getApp();
-  }
-  auth = getAuth(app);
-  db = getFirestore(app);
-
-  return { app, auth, db };
+if (!getApps().length) {
+  app = initializeApp(firebaseConfig);
+} else {
+  app = getApp();
 }
+auth = getAuth(app);
+db = getFirestore(app);
 
-// Export the initialized services
-const { app, auth, db } = initializeFirebase();
-export { app, auth, db, initializeFirebase };
+export { app, auth, db };
