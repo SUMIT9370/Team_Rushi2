@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useRef } from 'react';
 import {
@@ -125,7 +126,7 @@ export function SettingsScreen({
   return (
     <div className="space-y-8">
       {/* Profile Section */}
-      <Card>
+      <Card className="transition-all hover:shadow-xl hover:scale-[1.02]">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <UserIcon className="w-5 h-5" /> Profile
@@ -214,7 +215,7 @@ export function SettingsScreen({
       </Card>
 
       {/* Display & Accessibility */}
-      <Card>
+      <Card className="transition-all hover:shadow-xl hover:scale-[1.02]">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Palette className="w-5 h-5" /> Display & Accessibility
@@ -237,7 +238,7 @@ export function SettingsScreen({
       </Card>
 
       {/* Notifications */}
-      <Card>
+      <Card className="transition-all hover:shadow-xl hover:scale-[1.02]">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bell className="w-5 h-5" /> Notifications
@@ -261,7 +262,7 @@ export function SettingsScreen({
 
       {/* Other Sections */}
       <div className="grid md:grid-cols-2 gap-8">
-        <Card>
+        <Card className="transition-all hover:shadow-xl hover:scale-[1.02]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Languages className="w-5 h-5" /> Language
@@ -271,7 +272,7 @@ export function SettingsScreen({
             <p className="text-muted-foreground">Current language: English</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="transition-all hover:shadow-xl hover:scale-[1.02]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Shield className="w-5 h-5" /> Privacy
@@ -281,7 +282,7 @@ export function SettingsScreen({
             <Button variant="secondary">Manage Data</Button>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="transition-all hover:shadow-xl hover:scale-[1.02]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <LifeBuoy className="w-5 h-5" /> Support
@@ -291,7 +292,7 @@ export function SettingsScreen({
             <Button variant="secondary">Contact Us</Button>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="transition-all hover:shadow-xl hover:scale-[1.02]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <LogOut className="w-5 h-5" /> Logout

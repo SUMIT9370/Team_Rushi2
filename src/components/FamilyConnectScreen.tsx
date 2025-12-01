@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import {
@@ -260,7 +261,7 @@ export function FamilyConnectScreen({
               {familyMembers?.map((member) => (
                 <Card
                   key={member.id}
-                  className="p-4 bg-card/60"
+                  className="p-4 bg-card/60 transition-all hover:shadow-lg hover:scale-[1.02] hover:bg-primary/10"
                 >
                   <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-4">

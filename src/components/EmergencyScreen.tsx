@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import {
@@ -161,7 +162,7 @@ export function EmergencyScreen({ onNavigate }: EmergencyScreenProps) {
       <div className="flex-1 space-y-8">
         {/* Emergency Button */}
         {!emergencyActivated ? (
-          <Card className="p-8 bg-red-900/20 border-2 border-red-500/50 shadow-xl shadow-red-500/10">
+          <Card className="p-8 bg-red-900/20 border-2 border-red-500/50 shadow-xl shadow-red-500/10 transition-all hover:scale-[1.02] hover:shadow-2xl">
             <div className="text-center space-y-6">
               <div className="w-24 h-24 mx-auto bg-red-500/10 rounded-full flex items-center justify-center">
                 <AlertCircle className="w-14 h-14 text-red-400 animate-pulse" />
@@ -184,7 +185,7 @@ export function EmergencyScreen({ onNavigate }: EmergencyScreenProps) {
             </div>
           </Card>
         ) : (
-          <Card className="p-8 bg-green-900/20 border-2 border-green-500/50 shadow-xl shadow-green-500/10">
+          <Card className="p-8 bg-green-900/20 border-2 border-green-500/50 shadow-xl shadow-green-500/10 transition-all hover:scale-[1.02] hover:shadow-2xl">
             <div className="text-center space-y-6">
               <div className="w-24 h-24 mx-auto bg-green-500/10 rounded-full flex items-center justify-center">
                 <CheckCircle className="w-14 h-14 text-green-400" />
@@ -312,7 +313,7 @@ export function EmergencyScreen({ onNavigate }: EmergencyScreenProps) {
               {contacts?.map((contact) => (
                 <Card
                   key={contact.id}
-                  className="p-4 bg-card/60"
+                  className="p-4 bg-card/60 transition-all hover:shadow-lg hover:scale-[1.02] hover:bg-primary/10"
                 >
                   <div className="flex items-center gap-4">
                     <ImageWithFallback

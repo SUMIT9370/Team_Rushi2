@@ -273,7 +273,7 @@ export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
             reminders?.map((reminder) => (
               <Card
                 key={reminder.id}
-                className={`p-4 shadow-md transition-all hover:shadow-lg bg-card/60 ${
+                className={`p-4 shadow-md transition-all hover:shadow-xl hover:scale-[1.02] bg-card/60 ${
                   reminder.completed ? 'opacity-50' : ''
                 }`}
               >
