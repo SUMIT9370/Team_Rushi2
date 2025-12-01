@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Pill, Calendar, Droplet, Plus, Check, Clock, Trash2, Bell } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
@@ -9,7 +9,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Screen } from '../app/page';
 import type { User } from '@/firebase/auth/use-user';
 import { useUser, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, deleteDoc, doc, updateDoc, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, updateDoc, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
+import { sendReminderEmail } from '@/lib/email';
 
 
 interface RemindersScreenProps {
@@ -24,11 +26,14 @@ interface Reminder {
   time: string;
   description?: string;
   completed: boolean;
+  notified: boolean;
   emoji: string;
 }
 
 export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
   const db = useFirestore();
+  const { toast } = useToast();
+
   const remindersQuery = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(collection(db, 'users', user.uid, 'reminders'), orderBy('time'));
@@ -43,6 +48,40 @@ export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
     description: '',
     type: 'other' as const
   });
+
+  // Reminder clock effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+      reminders?.forEach(async (reminder) => {
+        if (reminder.time === currentTime && !reminder.completed && !reminder.notified) {
+          
+          // Trigger toast notification
+          toast({
+            title: `🔔 Reminder: ${reminder.title}`,
+            description: reminder.description || `It's time for your reminder at ${reminder.time}.`,
+            duration: 10000,
+          });
+
+          // Trigger email
+          if (user.email) {
+            sendReminderEmail(user.email, reminder.title, reminder.description || `This is a reminder for ${reminder.title} at ${reminder.time}.`);
+          }
+          
+          // Mark as notified to prevent re-triggering
+          if(db && user) {
+            const reminderDoc = doc(db, 'users', user.uid, 'reminders', reminder.id);
+            await updateDoc(reminderDoc, { notified: true });
+          }
+        }
+      });
+    }, 1000); // Check every second
+
+    return () => clearInterval(interval);
+  }, [reminders, user, db, toast]);
+
 
   const toggleReminder = async (id: string, currentStatus: boolean) => {
     if (db && user) {
@@ -60,16 +99,18 @@ export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
 
   const handleAddReminder = async () => {
     if (db && user && newReminder.title && newReminder.time) {
-      const reminder: Omit<Reminder, 'id'> = {
+      const reminderData = {
         type: newReminder.type,
         title: newReminder.title,
         time: newReminder.time,
         description: newReminder.description,
         completed: false,
+        notified: false,
+        createdAt: serverTimestamp(),
         emoji: newReminder.type === 'medicine' ? '💊' : newReminder.type === 'water' ? '💧' : newReminder.type === 'doctor' ? '🏥' : '📝'
       };
       const remindersCollection = collection(db, 'users', user.uid, 'reminders');
-      await addDoc(remindersCollection, reminder);
+      await addDoc(remindersCollection, reminderData);
       setNewReminder({ title: '', time: '', description: '', type: 'other' });
       setIsAdding(false);
     }
@@ -89,7 +130,6 @@ export function RemindersScreen({ onNavigate, user }: RemindersScreenProps) {
   };
 
   const completedCount = reminders?.filter(r => r.completed).length || 0;
-  const pendingCount = reminders?.filter(r => !r.completed).length || 0;
   const totalCount = reminders?.length || 0;
   const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
