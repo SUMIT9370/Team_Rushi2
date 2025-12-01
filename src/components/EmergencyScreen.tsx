@@ -8,7 +8,7 @@ import { Badge } from './ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Screen, EmergencyContact } from '../app/page';
 import { ImageWithFallback } from './ImageWithFallback';
-import { useUser, useCollection, useFirestore } from '@/firebase';
+import { useUser, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 
 interface EmergencyScreenProps {
@@ -19,9 +19,12 @@ export function EmergencyScreen({ onNavigate }: EmergencyScreenProps) {
   const { user } = useUser();
   const db = useFirestore();
 
-  const { data: contacts, loading } = useCollection<EmergencyContact>(
-    user ? `users/${user.uid}/emergencyContacts` : ''
-  );
+  const contactsQuery = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return collection(db, 'users', user.uid, 'emergencyContacts');
+  }, [db, user]);
+
+  const { data: contacts, isLoading: loading } = useCollection<EmergencyContact>(contactsQuery);
 
   const [emergencyActivated, setEmergencyActivated] = useState(false);
   const [isAddingContact, setIsAddingContact] = useState(false);
