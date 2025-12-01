@@ -10,6 +10,7 @@ import { HealthScreen } from "@/components/HealthScreen";
 import { useState } from "react";
 import { useUser } from "@/firebase";
 import type { User } from 'firebase/auth';
+import { Toaster } from "@/components/ui/toaster";
 
 
 export type Screen =
@@ -33,10 +34,10 @@ export interface EmergencyContact {
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("home");
-  const { user, loading } = useUser();
+  const { user, isUserLoading } = useUser();
 
   const renderScreen = () => {
-    if (loading) {
+    if (isUserLoading) {
       return (
         <div className="flex items-center justify-center min-h-screen">
           Loading...
@@ -44,7 +45,7 @@ export default function App() {
       );
     }
     if (!user) {
-      return <LoginScreen onNavigate={setCurrentScreen} />;
+      return <LoginScreen />;
     }
 
     switch (currentScreen) {
@@ -78,5 +79,5 @@ export default function App() {
     }
   };
 
-  return <div className="min-h-screen bg-slate-50">{renderScreen()}</div>;
+  return <div className="min-h-screen bg-slate-50">{renderScreen()}<Toaster /></div>;
 }
