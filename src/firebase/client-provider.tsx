@@ -1,7 +1,7 @@
 'use client';
 
 import { initializeFirebase } from './config';
-import { FirebaseProvider } from './provider';
+import { FirebaseProvider, FirebaseContextValue } from './provider';
 import { ReactNode } from 'react';
 
 // Initialize Firebase once on the client
